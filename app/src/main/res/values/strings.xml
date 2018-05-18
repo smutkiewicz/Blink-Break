@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Blink Break</string>
+    <string name="action_settings">Settings</string>
+    <string name="local_service_started">Blink Break Activated</string>
+    <string name="local_service_stopped">Blink Break deactivated</string>
+    <string name="blink_break_service_label">Blink Break</string>
+    <string name="local_service_disconnected">Local service disconnected</string>
+    <string name="local_service_connected">Local service connected</string>
+</resources>
