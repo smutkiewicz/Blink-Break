@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.smutkiewicz.blinkbreak">
 
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -19,8 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".BlinkBreakService"
-            android:exported="false"/>
+
+        <service
+            android:name=".BlinkBreakJobService"
+            android:label="BlinkBreakJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -9,22 +10,37 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
-        android:id="@+id/intervalTextView"
+        android:id="@+id/interval_val_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Interval"
+        android:text="@string/interval_sample"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.047"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/interval_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/card_view"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/interval_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/interval_sec"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.047"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
+        app:layout_constraintTop_toBottomOf="@+id/card_view"
         app:layout_constraintVertical_bias="0.0" />
 
     <android.support.v7.widget.CardView
-        android:id="@+id/cardView"
+        android:id="@+id/card_view"
         android:layout_width="0dp"
         android:layout_height="46dp"
         android:layout_marginEnd="8dp"
@@ -44,17 +60,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:elevation="48dp"
-                android:text="ToggleButton"
                 app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView
-                android:id="@+id/activatedTextView"
+                android:id="@+id/activated_text_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:text="Blink Break Deactivated"
+                android:text="@string/local_service_stopped"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -65,13 +80,23 @@
     </android.support.v7.widget.CardView>
 
     <TextView
-        android:id="@+id/breakLengthTextView"
+        android:id="@+id/break_length_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Break length"
+        android:text="@string/break_length_sec"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/intervalSeekBar" />
+
+    <TextView
+        android:id="@+id/break_length_val_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/sample_break_length"
+        app:layout_constraintStart_toEndOf="@+id/break_length_text_view"
         app:layout_constraintTop_toBottomOf="@+id/intervalSeekBar" />
 
     <SeekBar
@@ -82,25 +107,26 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:max="10"
-        android:progress="3"
+        android:max="11"
+        android:min="1"
+        android:progress="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/breakLengthTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/break_length_text_view" />
 
     <SeekBar
         android:id="@+id/intervalSeekBar"
-        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        style="@style/Widget.AppCompat.SeekBar"
         android:layout_width="0dp"
         android:layout_height="19dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:max="10"
+        android:max="60"
         android:progress="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/intervalTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/interval_text_view" />
 
 </android.support.constraint.ConstraintLayout>
