@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">Blink Break</string>
     <string name="action_settings">Settings</string>
-    <string name="local_service_started">Blink Break Activated</string>
-    <string name="local_service_stopped">Blink Break Deactivated</string>
     <string name="blink_break_service_label">Blink Break</string>
     <string name="local_service_disconnected">Local service disconnected</string>
     <string name="local_service_connected">Local service connected</string>
@@ -11,9 +9,14 @@
     <string name="no_jobs_to_cancel">No jobs to cancel</string>
     <string name="all_jobs_cancelled">All jobs cancelled</string>
     <string name="write_settings_required">Write settings permission required.</string>
+
+    <string name="service_activated">Blink Break Activated</string>
+    <string name="service_deactivated">Blink Break Deactivated</string>
+    <string name="break_duration">For a duration of:</string>
+    <string name="break_duration_sample">0</string>
+    <string name="break_every">Break every:</string>
+    <string name="break_every_sample">0</string>
     <string name="ok">OK</string>
-    <string name="break_length_sec">Break length (sec):</string>
-    <string name="sample_break_length">0</string>
-    <string name="interval_sec">Interval between screen flashes (sec):</string>
-    <string name="interval_sample">0</string>
+    <string name="big_break">Big break</string>
+    <string name="tiny_break">Tiny break</string>
 </resources>

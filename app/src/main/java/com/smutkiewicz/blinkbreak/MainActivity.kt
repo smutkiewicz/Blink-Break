@@ -5,19 +5,24 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Messenger
 import android.os.PersistableBundle
+import android.preference.PreferenceManager
 import android.provider.Settings
+import android.support.constraint.ConstraintLayout
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.CheckBox
 import android.widget.SeekBar
-import android.widget.TextView
+import com.smutkiewicz.blinkbreak.extensions.getProgress
+import com.smutkiewicz.blinkbreak.extensions.getProgressLabel
 import com.smutkiewicz.blinkbreak.extensions.showSnackbar
 import com.smutkiewicz.blinkbreak.extensions.showToast
 import com.smutkiewicz.blinkbreak.util.*
@@ -26,15 +31,12 @@ import kotlinx.android.synthetic.main.content_main.*
 import java.util.concurrent.TimeUnit
 
 
-
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     lateinit private var layout: View
-    lateinit private var intervalTextView: TextView
-    lateinit private var breakLengthTextView: TextView
-    lateinit private var activatedTextView: TextView
     lateinit private var handler: IncomingMessageHandler
     lateinit private var serviceComponent: ComponentName
+    lateinit private var sp: SharedPreferences
 
     private var jobId = 0
 
@@ -44,14 +46,14 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         setSupportActionBar(toolbar)
 
         layout = findViewById(R.id.layout)
-        intervalTextView = findViewById(R.id.interval_val_text_view)
-        breakLengthTextView = findViewById(R.id.break_length_val_text_view)
-        activatedTextView = findViewById(R.id.activated_text_view)
         handler = IncomingMessageHandler(this)
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
         serviceComponent = ComponentName(this, BlinkBreakJobService::class.java)
 
+        setUserSettings()
         setUpToggleButton()
         setUpSeekBars()
+        setUpCheckBoxes()
 
         if (!checkForWritePermissions()) {
             requestWriteSettingsPermission()
@@ -78,36 +80,60 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, p2: Boolean) {
+        var prefName: String = ""
+
         when (seekBar) {
-            breakLengthSeekBar -> breakLengthTextView.text = breakLengthSeekBar.progress.toString()
-            else -> intervalTextView.text = intervalSeekBar.progress.toString()
+            tinyBreakDurationSeekBar -> {
+                prefName = PREF_TINY_BREAK_DURATION
+                tinyBreakDurationValTextView.text =
+                        tinyBreakDurationSeekBar.getProgressLabel(this)
+            }
+
+            tinyBreakEverySeekBar -> {
+                prefName = PREF_TINY_BREAK_EVERY
+                tinyBreakEveryValTextView.text =
+                        tinyBreakEverySeekBar.getProgressLabel(this)
+            }
+
+            bigBreakDurationSeekBar -> {
+                prefName = PREF_BIG_BREAK_DURATION
+                bigBreakDurationValTextView.text =
+                        bigBreakDurationSeekBar.getProgressLabel(this)
+            }
+
+            bigBreakEverySeekBar -> {
+                prefName = PREF_BIG_BREAK_EVERY
+                bigBreakEveryValTextView.text =
+                        bigBreakEverySeekBar.getProgressLabel(this)
+            }
         }
+
+        sp.edit().putInt(prefName, progress).apply()
     }
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
         if (checkIfThereArePendingJobs()) {
             cancelAllJobs()
-            scheduleJob()
+            schedule()
         }
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {}
 
     private fun setUpToggleButton() {
-        serviceToggleButton.isChecked = checkIfThereArePendingJobs()
         serviceToggleButton.setOnCheckedChangeListener{ _, isChecked ->
             when {
                 isChecked -> {
                     if (checkForWritePermissions()) {
-                        activatedTextView.text = getString(R.string.local_service_started)
-                        scheduleJob()
+                        activatedTextView.text = getString(R.string.service_activated)
+                        schedule()
                     } else {
                         requestWriteSettingsPermission()
                         serviceToggleButton.isChecked = false
                     }
                 }
                 else -> {
-                    activatedTextView.text = getString(R.string.local_service_stopped)
+                    activatedTextView.text = getString(R.string.service_deactivated)
                     cancelAllJobs()
                 }
             }
@@ -115,11 +141,38 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun setUpSeekBars() {
-        breakLengthSeekBar.setOnSeekBarChangeListener(this)
-        breakLengthTextView.text = breakLengthSeekBar.progress.toString()
+        tinyBreakDurationSeekBar.setOnSeekBarChangeListener(this)
+        tinyBreakEverySeekBar.setOnSeekBarChangeListener(this)
+        bigBreakDurationSeekBar.setOnSeekBarChangeListener(this)
+        bigBreakEverySeekBar.setOnSeekBarChangeListener(this)
+    }
 
-        intervalSeekBar.setOnSeekBarChangeListener(this)
-        intervalTextView.text = intervalSeekBar.progress.toString()
+    /**
+     * Fetches types of breaks settings from Prefs and then sets up layout.
+     */
+    private fun setUpCheckBoxes() {
+        tinyBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            // save user preference
+            sp.edit().putBoolean(PREF_TINY_BREAK_ENABLED, isChecked).apply()
+
+            // block/unlock the layout
+            setIsEnabledForChildren(tinyBreakLayout, isChecked)
+        }
+
+        bigBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            sp.edit().putBoolean(PREF_BIG_BREAK_ENABLED, isChecked).apply()
+            setIsEnabledForChildren(bigBreakLayout, isChecked)
+        }
+    }
+
+    private fun setIsEnabledForChildren(layout: ConstraintLayout, isEnabled: Boolean) {
+        (0 until layout.childCount)
+                .map { layout.getChildAt(it) }
+                .forEach {
+                    if (it !is CheckBox) {
+                        it.isEnabled = isEnabled
+                    }
+                }
     }
 
     private fun requestWriteSettingsPermission() {
@@ -142,30 +195,39 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
     }
 
-    private fun checkForWritePermissions() =
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
-                Settings.System.canWrite(applicationContext)
-            else -> true
+    private fun checkForWritePermissions(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.System.canWrite(applicationContext)
+        } else {
+            true
+        }
+    }
+
+    private fun schedule() {
+        if (tinyBreakCheckBox.isChecked) {
+            scheduleJob(tinyBreakEverySeekBar.getProgress(this),
+                    tinyBreakDurationSeekBar.getProgress(this))
         }
 
-    private fun scheduleJob() {
+        if (bigBreakCheckBox.isChecked) {
+            scheduleJob(bigBreakEverySeekBar.getProgress(this),
+                    bigBreakDurationSeekBar.getProgress(this))
+        }
+    }
+
+    private fun scheduleJob(breakEvery: Int, breakDuration: Int) {
         val builder = JobInfo.Builder(jobId++, serviceComponent)
         val minimumLatency: Long = 1000
 
         // Extras, interval between consecutive jobs.
         val extras = PersistableBundle()
-        val interval = intervalSeekBar.progress
 
         // Extras, duration of lower brightness break
-        val breakLength = breakLengthSeekBar.progress
+        val breakEveryInMillis = breakEvery.toLong() * TimeUnit.SECONDS.toMillis(1)
+        val breakDurationInMillis = breakDuration.toLong() * TimeUnit.SECONDS.toMillis(1)
 
-        val intervalInMillis = interval.toLong() * TimeUnit.SECONDS.toMillis(1)
-        val breakLengthInMillis = breakLength.toLong() * TimeUnit.SECONDS.toMillis(1)
-        val brightnessValue = 0
-        extras.putLong(INTERVAL_KEY, intervalInMillis)
-        extras.putLong(BREAK_LENGTH_KEY, breakLengthInMillis)
-        extras.putInt(BRIGHTNESS_KEY, brightnessValue)
+        extras.putLong(BREAK_EVERY_KEY, breakEveryInMillis)
+        extras.putLong(BREAK_DURATION_KEY, breakDurationInMillis)
 
         // Finish configuring the builder
         builder.run {
@@ -190,6 +252,46 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         val allPendingJobs = jobScheduler.allPendingJobs
 
         return allPendingJobs.size > 0
+    }
+
+    /**
+     * Fetches user's setup and enables/disables UI elements related to the setup.
+     */
+    private fun setUserSettings() {
+        // service activated/deactivated CardView
+        if (checkIfThereArePendingJobs()) {
+            serviceToggleButton.isChecked = true
+            activatedTextView.text = getString(R.string.service_activated)
+        } else {
+            serviceToggleButton.isChecked = false
+            activatedTextView.text = getString(R.string.service_deactivated)
+        }
+
+        // Checkboxes
+        val isTinyBreakEnabled = sp.getBoolean(PREF_TINY_BREAK_ENABLED, false)
+        val isBigBreakEnabled = sp.getBoolean(PREF_BIG_BREAK_ENABLED, false)
+
+        tinyBreakCheckBox.isChecked = isTinyBreakEnabled
+        setIsEnabledForChildren(tinyBreakLayout, isTinyBreakEnabled)
+
+        bigBreakCheckBox.isChecked = isBigBreakEnabled
+        setIsEnabledForChildren(bigBreakLayout, isBigBreakEnabled)
+
+        // Break length/duration SeekBars
+        tinyBreakEverySeekBar.progress = sp.getInt(PREF_TINY_BREAK_EVERY, 0)
+        bigBreakEverySeekBar.progress = sp.getInt(PREF_BIG_BREAK_EVERY, 0)
+        tinyBreakDurationSeekBar.progress = sp.getInt(PREF_TINY_BREAK_DURATION, 0)
+        bigBreakDurationSeekBar.progress = sp.getInt(PREF_BIG_BREAK_DURATION, 0)
+
+        // Break length/duration textViews connected with their SeekBars
+        tinyBreakDurationValTextView.text =
+                tinyBreakDurationSeekBar.getProgressLabel(this)
+        tinyBreakEveryValTextView.text =
+                tinyBreakEverySeekBar.getProgressLabel(this)
+        bigBreakDurationValTextView.text =
+                bigBreakDurationSeekBar.getProgressLabel(this)
+        bigBreakEveryValTextView.text =
+                bigBreakEverySeekBar.getProgressLabel(this)
     }
 
     private companion object {

@@ -13,7 +13,7 @@ import android.os.Messenger
 import android.os.RemoteException
 import android.provider.Settings
 import android.util.Log
-import com.smutkiewicz.blinkbreak.util.INTERVAL_KEY
+import com.smutkiewicz.blinkbreak.util.BREAK_EVERY_KEY
 import com.smutkiewicz.blinkbreak.util.MESSENGER_INTENT_KEY
 import com.smutkiewicz.blinkbreak.util.MSG_COLOR_START
 import com.smutkiewicz.blinkbreak.util.MSG_COLOR_STOP
@@ -24,10 +24,6 @@ class BlinkBreakJobService : JobService() {
     private var activityMessenger: Messenger? = null
     private var userBrightness: Int = 0
 
-    /**
-     * When the app's MainActivity is created, it starts this service. This is so that the
-     * activity and this service can communicate back and forth. See "setUiCallback()"
-     */
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         activityMessenger = intent.getParcelableExtra(MESSENGER_INTENT_KEY)
@@ -37,7 +33,7 @@ class BlinkBreakJobService : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         sendMessage(MSG_COLOR_START, params.jobId)
 
-        val duration = params.extras.getLong(INTERVAL_KEY)
+        val duration = params.extras.getLong(BREAK_EVERY_KEY)
         userBrightness = getScreenBrightness()
 
         Handler().postDelayed({
@@ -75,8 +71,6 @@ class BlinkBreakJobService : JobService() {
     }
 
     private fun sendMessage(messageID: Int, params: Any?) {
-        // If this service is launched by the JobScheduler, there's no callback Messenger. It
-        // only exists when the MainActivity calls startService() with the callback in the Intent.
         if (activityMessenger == null) {
             Log.d(TAG, "Service is bound, not started. There's no callback to send a message to.")
             return
@@ -95,7 +89,7 @@ class BlinkBreakJobService : JobService() {
 
     private fun showNotification() {
         TODO()
-        val text = getText(R.string.local_service_started)
+        val text = getText(R.string.service_activated)
         val contentIntent = PendingIntent.getActivity(this, 0,
                 Intent(this, MainActivity::class.java), 0)
         val notification = Notification.Builder(this)
