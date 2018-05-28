@@ -5,35 +5,31 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.PersistableBundle
-import java.util.concurrent.TimeUnit
+import com.smutkiewicz.blinkbreak.BlinkBreakJobService
 
 /**
- * Created by Admin on 2018-05-28.
+ * Utility class used by Activities to schedule jobs using JobScheduler class.
  */
-class JobSchedulerHelper {
+class JobSchedulerHelper(private val context: Context) {
 
-    lateinit private var serviceComponent: ComponentName
-    lateinit private var context: Context
+    private var serviceComponent =
+            ComponentName(context, BlinkBreakJobService::class.java)
     private var jobId = 0
 
-    private fun scheduleJob(breakEvery: Int, breakDuration: Int) {
+    fun scheduleJob(breakEvery: Int, breakDuration: Int) {
         val builder = JobInfo.Builder(jobId++, serviceComponent)
-        val minimumLatency: Long = 1000
 
         // Extras, interval between consecutive jobs.
         val extras = PersistableBundle()
 
-        // Extras, duration of lower brightness break
-        val breakEveryInMillis = breakEvery.toLong() * TimeUnit.SECONDS.toMillis(1)
-        val breakDurationInMillis = breakDuration.toLong() * TimeUnit.SECONDS.toMillis(1)
-
-        extras.putLong(BREAK_EVERY_KEY, breakEveryInMillis)
-        extras.putLong(BREAK_DURATION_KEY, breakDurationInMillis)
+        // Extras, periodic fire time of the break and its duration
+        extras.putLong(BREAK_EVERY_KEY, breakEvery.toLong())
+        extras.putLong(BREAK_DURATION_KEY, breakDuration.toLong())
 
         // Finish configuring the builder
         builder.run {
-            setMinimumLatency(minimumLatency)
-            setBackoffCriteria(minimumLatency, JobInfo.BACKOFF_POLICY_LINEAR)
+            setMinimumLatency(breakEvery.toLong())
+            setBackoffCriteria(breakEvery.toLong(), JobInfo.BACKOFF_POLICY_LINEAR)
             setRequiresDeviceIdle(false)
             setRequiresCharging(false)
             setExtras(extras)
@@ -43,11 +39,11 @@ class JobSchedulerHelper {
         (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(builder.build())
     }
 
-    private fun cancelAllJobs() {
+    fun cancelAllJobs() {
         (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).cancelAll()
     }
 
-    private fun checkIfThereArePendingJobs(): Boolean {
+    fun checkIfThereArePendingJobs(): Boolean {
         val jobScheduler = context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
         val allPendingJobs = jobScheduler.allPendingJobs
 

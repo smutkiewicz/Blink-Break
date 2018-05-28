@@ -1,16 +1,11 @@
 package com.smutkiewicz.blinkbreak
 
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Messenger
-import android.os.PersistableBundle
 import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.constraint.ConstraintLayout
@@ -21,24 +16,21 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.SeekBar
+import com.smutkiewicz.blinkbreak.extensions.checkForWritePermissions
 import com.smutkiewicz.blinkbreak.extensions.getProgress
 import com.smutkiewicz.blinkbreak.extensions.getProgressLabel
 import com.smutkiewicz.blinkbreak.extensions.showSnackbar
-import com.smutkiewicz.blinkbreak.extensions.showToast
 import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     lateinit private var layout: View
     lateinit private var handler: IncomingMessageHandler
-    lateinit private var serviceComponent: ComponentName
+    lateinit private var jobHelper: JobSchedulerHelper
     lateinit private var sp: SharedPreferences
-
-    private var jobId = 0
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,8 +39,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
         layout = findViewById(R.id.layout)
         handler = IncomingMessageHandler(this)
+        jobHelper = JobSchedulerHelper(this)
         sp = PreferenceManager.getDefaultSharedPreferences(this)
-        serviceComponent = ComponentName(this, BlinkBreakJobService::class.java)
 
         setUserSettings()
         setUpToggleButton()
@@ -75,12 +67,15 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return super.onOptionsItemSelected(item)
-    }
+    override fun onOptionsItemSelected(item: MenuItem) =
+        when (item.itemId) {
+            R.id.action_settings -> true
+            else -> super.onOptionsItemSelected(item)
+        }
+
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, p2: Boolean) {
-        var prefName: String = ""
+        var prefName = ""
 
         when (seekBar) {
             tinyBreakDurationSeekBar -> {
@@ -112,8 +107,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
-        if (checkIfThereArePendingJobs()) {
-            cancelAllJobs()
+        if (jobHelper.checkIfThereArePendingJobs()) {
+            jobHelper.cancelAllJobs()
             schedule()
         }
     }
@@ -134,7 +129,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 }
                 else -> {
                     activatedTextView.text = getString(R.string.service_deactivated)
-                    cancelAllJobs()
+                    jobHelper.cancelAllJobs()
                 }
             }
         }
@@ -149,6 +144,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     /**
      * Fetches types of breaks settings from Prefs and then sets up layout.
+     * Checkboxes are part of UI responsible for enabling/disabling breaks' settings.
      */
     private fun setUpCheckBoxes() {
         tinyBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -165,6 +161,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
     }
 
+    /**
+     * Utility function. Sets isEnabled property for all given layout's children,
+     * excluding checkboxes. They are used for setting isEnabled layout's property.
+     */
     private fun setIsEnabledForChildren(layout: ConstraintLayout, isEnabled: Boolean) {
         (0 until layout.childCount)
                 .map { layout.getChildAt(it) }
@@ -175,13 +175,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 }
     }
 
-    private fun requestWriteSettingsPermission() {
-        layout.showSnackbar(R.string.write_settings_required,
-                Snackbar.LENGTH_INDEFINITE, R.string.ok) {
-            openAndroidPermissionsMenu()
-        }
-    }
-
+    /**
+     * Binds active job service to our Activity. This is needed for catching eventual callbacks
+     * from the service.
+     */
     private fun bindToBlinkBreakService() {
         val startServiceIntent = Intent(this, BlinkBreakJobService::class.java)
         val messengerIncoming = Messenger(handler)
@@ -189,77 +186,43 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         startService(startServiceIntent)
     }
 
-    private fun openAndroidPermissionsMenu() {
-        val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
-        intent.data = Uri.parse("package:" + packageName)
-        startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
+    private fun requestWriteSettingsPermission() {
+        layout.showSnackbar(R.string.write_settings_required,
+                Snackbar.LENGTH_INDEFINITE, R.string.ok) {
+            openAndroidPermissionsMenu()
+        }
     }
 
-    private fun checkForWritePermissions(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.System.canWrite(applicationContext)
-        } else {
-            true
+    /**
+     * Opens app's settings menu, as WRITE_SETTINGS permission requires intent to Settings.
+     */
+    private fun openAndroidPermissionsMenu() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+            intent.data = Uri.parse("package:" + packageName)
+            startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
         }
     }
 
     private fun schedule() {
         if (tinyBreakCheckBox.isChecked) {
-            scheduleJob(tinyBreakEverySeekBar.getProgress(this),
+            jobHelper.scheduleJob(tinyBreakEverySeekBar.getProgress(this),
                     tinyBreakDurationSeekBar.getProgress(this))
         }
 
         if (bigBreakCheckBox.isChecked) {
-            scheduleJob(bigBreakEverySeekBar.getProgress(this),
+            jobHelper.scheduleJob(bigBreakEverySeekBar.getProgress(this),
                     bigBreakDurationSeekBar.getProgress(this))
         }
     }
 
-    private fun scheduleJob(breakEvery: Int, breakDuration: Int) {
-        val builder = JobInfo.Builder(jobId++, serviceComponent)
-        val minimumLatency: Long = 1000
-
-        // Extras, interval between consecutive jobs.
-        val extras = PersistableBundle()
-
-        // Extras, duration of lower brightness break
-        val breakEveryInMillis = breakEvery.toLong() * TimeUnit.SECONDS.toMillis(1)
-        val breakDurationInMillis = breakDuration.toLong() * TimeUnit.SECONDS.toMillis(1)
-
-        extras.putLong(BREAK_EVERY_KEY, breakEveryInMillis)
-        extras.putLong(BREAK_DURATION_KEY, breakDurationInMillis)
-
-        // Finish configuring the builder
-        builder.run {
-            setMinimumLatency(minimumLatency)
-            setBackoffCriteria(minimumLatency, JobInfo.BACKOFF_POLICY_LINEAR)
-            setRequiresDeviceIdle(false)
-            setRequiresCharging(false)
-            setExtras(extras)
-        }
-
-        // Schedule job
-        (getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(builder.build())
-    }
-
-    private fun cancelAllJobs() {
-        (getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).cancelAll()
-        showToast(getString(R.string.all_jobs_cancelled))
-    }
-
-    private fun checkIfThereArePendingJobs(): Boolean {
-        val jobScheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
-        val allPendingJobs = jobScheduler.allPendingJobs
-
-        return allPendingJobs.size > 0
-    }
-
     /**
-     * Fetches user's setup and enables/disables UI elements related to the setup.
+     * Fetches user's setup and enables/disables UI elements
+     * related to the setup on app start.
      */
     private fun setUserSettings() {
         // service activated/deactivated CardView
-        if (checkIfThereArePendingJobs()) {
+        if (jobHelper.checkIfThereArePendingJobs()) {
             serviceToggleButton.isChecked = true
             activatedTextView.text = getString(R.string.service_activated)
         } else {

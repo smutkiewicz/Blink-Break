@@ -13,10 +13,7 @@ import android.os.Messenger
 import android.os.RemoteException
 import android.provider.Settings
 import android.util.Log
-import com.smutkiewicz.blinkbreak.util.BREAK_EVERY_KEY
-import com.smutkiewicz.blinkbreak.util.MESSENGER_INTENT_KEY
-import com.smutkiewicz.blinkbreak.util.MSG_COLOR_START
-import com.smutkiewicz.blinkbreak.util.MSG_COLOR_STOP
+import com.smutkiewicz.blinkbreak.util.*
 
 class BlinkBreakJobService : JobService() {
 
@@ -33,7 +30,7 @@ class BlinkBreakJobService : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         sendMessage(MSG_COLOR_START, params.jobId)
 
-        val duration = params.extras.getLong(BREAK_EVERY_KEY)
+        val duration = params.extras.getLong(BREAK_DURATION_KEY)
         userBrightness = getScreenBrightness()
 
         Handler().postDelayed({
