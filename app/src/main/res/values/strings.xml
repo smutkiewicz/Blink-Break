@@ -19,4 +19,10 @@
     <string name="ok">OK</string>
     <string name="big_break">Big break</string>
     <string name="tiny_break">Tiny break</string>
+    <string name="have_a_break_message">It\'s time for a %1$s! Have a break.</string>
+    <string name="have_a_break_ticker">Protect yourself from RSI consequences.</string>
+    <string name="service_notification_channel_name">Blink Break</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_lower_brightness">Lower brightness on the device during the break</string>
+    <string name="notifications_high_importance">Set high importance of the notifications</string>
 </resources>

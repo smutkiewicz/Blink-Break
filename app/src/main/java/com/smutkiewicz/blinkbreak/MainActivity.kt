@@ -8,18 +8,14 @@ import android.os.Bundle
 import android.os.Messenger
 import android.preference.PreferenceManager
 import android.provider.Settings
-import android.support.constraint.ConstraintLayout
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.CheckBox
 import android.widget.SeekBar
-import com.smutkiewicz.blinkbreak.extensions.checkForWritePermissions
-import com.smutkiewicz.blinkbreak.extensions.getProgress
-import com.smutkiewicz.blinkbreak.extensions.getProgressLabel
-import com.smutkiewicz.blinkbreak.extensions.showSnackbar
+import com.smutkiewicz.blinkbreak.extensions.*
+import com.smutkiewicz.blinkbreak.model.Job
 import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -152,27 +148,25 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             sp.edit().putBoolean(PREF_TINY_BREAK_ENABLED, isChecked).apply()
 
             // block/unlock the layout
-            setIsEnabledForChildren(tinyBreakLayout, isChecked)
+            tinyBreakLayout.setIsEnabledForChildren(isChecked)
         }
 
         bigBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_BIG_BREAK_ENABLED, isChecked).apply()
-            setIsEnabledForChildren(bigBreakLayout, isChecked)
+            bigBreakLayout.setIsEnabledForChildren(isChecked)
         }
-    }
 
-    /**
-     * Utility function. Sets isEnabled property for all given layout's children,
-     * excluding checkboxes. They are used for setting isEnabled layout's property.
-     */
-    private fun setIsEnabledForChildren(layout: ConstraintLayout, isEnabled: Boolean) {
-        (0 until layout.childCount)
-                .map { layout.getChildAt(it) }
-                .forEach {
-                    if (it !is CheckBox) {
-                        it.isEnabled = isEnabled
-                    }
-                }
+        notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
+        }
+
+        notificImportanceCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            sp.edit().putBoolean(PREF_HIGH_IMPORTANCE, isChecked).apply()
+        }
+
+        notificBrightnessCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            sp.edit().putBoolean(PREF_LOWER_BRIGHTNESS, isChecked).apply()
+        }
     }
 
     /**
@@ -205,15 +199,27 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
+        var jobToSchedule: Job? = null
+
         if (tinyBreakCheckBox.isChecked) {
-            jobHelper.scheduleJob(tinyBreakEverySeekBar.getProgress(this),
-                    tinyBreakDurationSeekBar.getProgress(this))
+            jobToSchedule = Job(breakType = BREAK_TYPE_TINY,
+                    breakEvery = tinyBreakEverySeekBar.getProgress(this),
+                    breakDuration = tinyBreakDurationSeekBar.getProgress(this),
+                    areNotificationsEnabled = notificCheckBox.isChecked,
+                    highImportance = notificImportanceCheckBox.isChecked,
+                    isLowerBrightness = notificBrightnessCheckBox.isChecked)
         }
 
         if (bigBreakCheckBox.isChecked) {
-            jobHelper.scheduleJob(bigBreakEverySeekBar.getProgress(this),
-                    bigBreakDurationSeekBar.getProgress(this))
+            jobToSchedule = Job(breakType = BREAK_TYPE_BIG,
+                    breakEvery = bigBreakEverySeekBar.getProgress(this),
+                    breakDuration = bigBreakDurationSeekBar.getProgress(this),
+                    areNotificationsEnabled = notificCheckBox.isChecked,
+                    highImportance = notificImportanceCheckBox.isChecked,
+                    isLowerBrightness = notificBrightnessCheckBox.isChecked)
         }
+
+        jobHelper.scheduleJob(jobToSchedule)
     }
 
     /**
@@ -235,10 +241,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         val isBigBreakEnabled = sp.getBoolean(PREF_BIG_BREAK_ENABLED, false)
 
         tinyBreakCheckBox.isChecked = isTinyBreakEnabled
-        setIsEnabledForChildren(tinyBreakLayout, isTinyBreakEnabled)
+        tinyBreakLayout.setIsEnabledForChildren(isTinyBreakEnabled)
 
         bigBreakCheckBox.isChecked = isBigBreakEnabled
-        setIsEnabledForChildren(bigBreakLayout, isBigBreakEnabled)
+        bigBreakLayout.setIsEnabledForChildren(isBigBreakEnabled)
 
         // Break length/duration SeekBars
         tinyBreakEverySeekBar.progress = sp.getInt(PREF_TINY_BREAK_EVERY, 0)
@@ -255,6 +261,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 bigBreakDurationSeekBar.getProgressLabel(this)
         bigBreakEveryValTextView.text =
                 bigBreakEverySeekBar.getProgressLabel(this)
+
+        // Notifications section
+        notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
+        notificImportanceCheckBox.isChecked = sp.getBoolean(PREF_HIGH_IMPORTANCE, true)
+        notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, true)
     }
 
     private companion object {

@@ -1,19 +1,21 @@
 package com.smutkiewicz.blinkbreak
 
-import android.app.Notification
+import android.annotation.TargetApi
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.app.job.JobParameters
 import android.app.job.JobService
 import android.content.Intent
-import android.os.Handler
-import android.os.Message
-import android.os.Messenger
-import android.os.RemoteException
+import android.graphics.Color
+import android.os.*
 import android.provider.Settings
+import android.support.v4.app.NotificationCompat
 import android.util.Log
+import com.smutkiewicz.blinkbreak.extensions.getBooleanValue
 import com.smutkiewicz.blinkbreak.util.*
+
 
 class BlinkBreakJobService : JobService() {
 
@@ -31,7 +33,14 @@ class BlinkBreakJobService : JobService() {
         sendMessage(MSG_COLOR_START, params.jobId)
 
         val duration = params.extras.getLong(BREAK_DURATION_KEY)
+        val typeOfBreak = params.extras.getInt(BREAK_TYPE_KEY)
+        val notifications = params.extras.getBooleanValue(NOTIFICATIONS_KEY)
+        val highImportance = params.extras.getBooleanValue(HIGH_IMPORTANCE_KEY)
+        val lowerBrightness = params.extras.getBooleanValue(LOWER_BRIGHTNESS_KEY)
         userBrightness = getScreenBrightness()
+
+        showNotification(typeOfBreak)
+        setScreenBrightness(0)
 
         Handler().postDelayed({
             Log.i(TAG, "on finish job: ${params.jobId}")
@@ -41,7 +50,6 @@ class BlinkBreakJobService : JobService() {
         }, duration)
 
         Log.i(TAG, "on start job: ${params.jobId}")
-        setScreenBrightness(0)
 
         return true
     }
@@ -84,23 +92,54 @@ class BlinkBreakJobService : JobService() {
         }
     }
 
-    private fun showNotification() {
-        TODO()
-        val text = getText(R.string.service_activated)
+    private fun showNotification(typeOfBreak: Int) {
+        val contentText = getString(R.string.have_a_break_ticker)
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val contentIntent = PendingIntent.getActivity(this, 0,
-                Intent(this, MainActivity::class.java), 0)
-        val notification = Notification.Builder(this)
-                .setSmallIcon(R.drawable.ic_eye_black)
-                .setTicker(text)
+                intent, 0)
+
+        val builder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
                 .setWhen(System.currentTimeMillis())
-                .setContentTitle(getText(R.string.blink_break_service_label))
-                .setContentText(text)
+                .setContentText(contentText)
                 .setContentIntent(contentIntent)
-                .build()
-        //nm!!.notify(BlinkBreakService.NOTIFICATION, notification)
+
+        when (typeOfBreak) {
+            BREAK_TYPE_TINY -> {
+                val breakText = getString(R.string.tiny_break)
+                val title = getString(R.string.have_a_break_message, breakText)
+                builder.setSmallIcon(R.drawable.ic_have_a_short_break_24dp)
+                        .setContentTitle(title)
+            }
+            BREAK_TYPE_BIG -> {
+                val breakText = getString(R.string.big_break)
+                val title = getString(R.string.have_a_break_message, breakText)
+                builder.setSmallIcon(R.drawable.ic_have_a_big_break_24dp)
+                        .setContentTitle(title)
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setNotificationChannel()
+            builder.setChannelId(SERVICE_CHANNEL_ID)
+        }
+
+        val notification = builder.build()
+        nm!!.notify(R.string.have_a_break_message, notification)
+    }
+
+    @TargetApi(26)
+    private fun setNotificationChannel() {
+        val notificationChannel = NotificationChannel(SERVICE_CHANNEL_ID,
+                getString(R.string.service_notification_channel_name),
+                NotificationManager.IMPORTANCE_HIGH)
+        notificationChannel.lightColor = Color.RED
+        nm!!.createNotificationChannel(notificationChannel)
     }
 
     companion object {
         private val TAG = "MyJobService"
+        private val SERVICE_CHANNEL_ID = "blink_break_channel_id"
     }
 }
