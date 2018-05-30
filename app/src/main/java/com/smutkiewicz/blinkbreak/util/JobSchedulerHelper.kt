@@ -6,8 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.PersistableBundle
 import com.smutkiewicz.blinkbreak.BlinkBreakJobService
-import com.smutkiewicz.blinkbreak.model.Job
 import com.smutkiewicz.blinkbreak.extensions.putBooleanValue
+import com.smutkiewicz.blinkbreak.model.Job
 
 /**
  * Utility class used by Activities to schedule jobs using JobScheduler class.
@@ -26,7 +26,7 @@ class JobSchedulerHelper(private val context: Context) {
 
         // Extras, periodic fire time of the break and its duration
         extras.putLong(BREAK_DURATION_KEY, job!!.breakDuration.toLong())
-        extras.putInt(BREAK_TYPE_KEY, job.breakType)
+        extras.putInt(BREAK_TYPE_KEY, job!!.breakType)
         extras.putBooleanValue(NOTIFICATIONS_KEY, job.areNotificationsEnabled)
         extras.putBooleanValue(HIGH_IMPORTANCE_KEY, job.highImportance)
         extras.putBooleanValue(LOWER_BRIGHTNESS_KEY, job.isLowerBrightness)

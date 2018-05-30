@@ -14,6 +14,7 @@ import com.smutkiewicz.blinkbreak.BuildConfig
 @JvmField val PREF_NOTIFICATIONS = "notifications"
 @JvmField val PREF_HIGH_IMPORTANCE = "high_importance"
 @JvmField val PREF_LOWER_BRIGHTNESS = "lower_brightness"
+@JvmField val PREF_USER_BRIGHTNESS = "user_brightness"
 
 @JvmField val MSG_UNCOLOR_START = 0
 @JvmField val MSG_UNCOLOR_STOP = 1

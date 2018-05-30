@@ -10,6 +10,7 @@ import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -89,13 +90,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             bigBreakDurationSeekBar -> {
                 prefName = PREF_BIG_BREAK_DURATION
                 bigBreakDurationValTextView.text =
-                        bigBreakDurationSeekBar.getProgressLabel(this)
+                        bigBreakDurationSeekBar.getProgressLabel(this, 4)
             }
 
             bigBreakEverySeekBar -> {
                 prefName = PREF_BIG_BREAK_EVERY
                 bigBreakEveryValTextView.text =
-                        bigBreakEverySeekBar.getProgressLabel(this)
+                        bigBreakEverySeekBar.getProgressLabel(this, 4)
             }
         }
 
@@ -103,10 +104,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
-        if (jobHelper.checkIfThereArePendingJobs()) {
-            jobHelper.cancelAllJobs()
-            schedule()
-        }
+        reschedule()
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -149,23 +147,30 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
             // block/unlock the layout
             tinyBreakLayout.setIsEnabledForChildren(isChecked)
+
+            // settings changed, reschedule if needed
+            reschedule()
         }
 
         bigBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_BIG_BREAK_ENABLED, isChecked).apply()
             bigBreakLayout.setIsEnabledForChildren(isChecked)
+            reschedule()
         }
 
         notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
+            reschedule()
         }
 
         notificImportanceCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_HIGH_IMPORTANCE, isChecked).apply()
+            reschedule()
         }
 
         notificBrightnessCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_LOWER_BRIGHTNESS, isChecked).apply()
+            reschedule()
         }
     }
 
@@ -199,7 +204,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
-        var jobToSchedule: Job? = null
+        var jobToSchedule: Job
 
         if (tinyBreakCheckBox.isChecked) {
             jobToSchedule = Job(breakType = BREAK_TYPE_TINY,
@@ -208,18 +213,35 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                     areNotificationsEnabled = notificCheckBox.isChecked,
                     highImportance = notificImportanceCheckBox.isChecked,
                     isLowerBrightness = notificBrightnessCheckBox.isChecked)
+            jobHelper.scheduleJob(jobToSchedule)
         }
 
         if (bigBreakCheckBox.isChecked) {
             jobToSchedule = Job(breakType = BREAK_TYPE_BIG,
-                    breakEvery = bigBreakEverySeekBar.getProgress(this),
-                    breakDuration = bigBreakDurationSeekBar.getProgress(this),
+                    breakEvery = bigBreakEverySeekBar.getProgress(this, BIG_BREAK_ARRAY_SHIFT),
+                    breakDuration = bigBreakDurationSeekBar.getProgress(this, BIG_BREAK_ARRAY_SHIFT),
                     areNotificationsEnabled = notificCheckBox.isChecked,
                     highImportance = notificImportanceCheckBox.isChecked,
                     isLowerBrightness = notificBrightnessCheckBox.isChecked)
+            jobHelper.scheduleJob(jobToSchedule)
         }
+    }
 
-        jobHelper.scheduleJob(jobToSchedule)
+    private fun reschedule() {
+        if (checkForWritePermissions()) {
+            if (jobHelper.checkIfThereArePendingJobs()) {
+                Log.d(TAG, "Rescheduling...")
+                jobHelper.cancelAllJobs()
+                schedule()
+            } else {
+                if (serviceToggleButton.isChecked) {
+                    schedule()
+                }
+                Log.d(TAG, "No need to reschedule.")
+            }
+        } else {
+            requestWriteSettingsPermission()
+        }
     }
 
     /**
@@ -258,9 +280,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         tinyBreakEveryValTextView.text =
                 tinyBreakEverySeekBar.getProgressLabel(this)
         bigBreakDurationValTextView.text =
-                bigBreakDurationSeekBar.getProgressLabel(this)
+                bigBreakDurationSeekBar.getProgressLabel(this, BIG_BREAK_ARRAY_SHIFT)
         bigBreakEveryValTextView.text =
-                bigBreakEverySeekBar.getProgressLabel(this)
+                bigBreakEverySeekBar.getProgressLabel(this, BIG_BREAK_ARRAY_SHIFT)
 
         // Notifications section
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
@@ -271,5 +293,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     private companion object {
         val TAG = "MainActivity"
         val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
+        val BIG_BREAK_ARRAY_SHIFT = 6
     }
 }
