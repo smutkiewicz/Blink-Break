@@ -26,22 +26,23 @@ class JobSchedulerHelper(private val context: Context) {
 
         // Extras, periodic fire time of the break and its duration
         extras.putLong(BREAK_DURATION_KEY, job!!.breakDuration.toLong())
-        extras.putInt(BREAK_TYPE_KEY, job!!.breakType)
         extras.putBooleanValue(NOTIFICATIONS_KEY, job.areNotificationsEnabled)
-        extras.putBooleanValue(HIGH_IMPORTANCE_KEY, job.highImportance)
         extras.putBooleanValue(LOWER_BRIGHTNESS_KEY, job.isLowerBrightness)
 
         // Finish configuring the builder
         builder.run {
             setMinimumLatency(job.breakEvery.toLong())
             setBackoffCriteria(job.breakEvery.toLong(), JobInfo.BACKOFF_POLICY_LINEAR)
+            setOverrideDeadline(job.breakEvery.toLong())
             setRequiresDeviceIdle(false)
             setRequiresCharging(false)
+            setPersisted(true)
             setExtras(extras)
         }
 
         // Schedule job
-        (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(builder.build())
+        (context.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler)
+                .schedule(builder.build())
     }
 
     fun cancelAllJobs() {

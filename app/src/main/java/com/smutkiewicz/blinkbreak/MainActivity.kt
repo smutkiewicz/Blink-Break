@@ -1,7 +1,11 @@
 package com.smutkiewicz.blinkbreak
 
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +13,7 @@ import android.os.Messenger
 import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.design.widget.Snackbar
+import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -75,28 +80,16 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         var prefName = ""
 
         when (seekBar) {
-            tinyBreakDurationSeekBar -> {
-                prefName = PREF_TINY_BREAK_DURATION
+            breakDurationSeekBar -> {
+                prefName = PREF_BREAK_DURATION
                 tinyBreakDurationValTextView.text =
-                        tinyBreakDurationSeekBar.getProgressLabel(this)
+                        breakDurationSeekBar.getProgressLabel(this)
             }
 
-            tinyBreakEverySeekBar -> {
-                prefName = PREF_TINY_BREAK_EVERY
+            breakEverySeekBar -> {
+                prefName = PREF_BREAK_EVERY
                 tinyBreakEveryValTextView.text =
-                        tinyBreakEverySeekBar.getProgressLabel(this)
-            }
-
-            bigBreakDurationSeekBar -> {
-                prefName = PREF_BIG_BREAK_DURATION
-                bigBreakDurationValTextView.text =
-                        bigBreakDurationSeekBar.getProgressLabel(this, 4)
-            }
-
-            bigBreakEverySeekBar -> {
-                prefName = PREF_BIG_BREAK_EVERY
-                bigBreakEveryValTextView.text =
-                        bigBreakEverySeekBar.getProgressLabel(this, 4)
+                        breakEverySeekBar.getProgressLabel(this)
             }
         }
 
@@ -115,6 +108,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 isChecked -> {
                     if (checkForWritePermissions()) {
                         activatedTextView.text = getString(R.string.service_activated)
+                        showServiceActiveNotification()
                         schedule()
                     } else {
                         requestWriteSettingsPermission()
@@ -123,6 +117,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 }
                 else -> {
                     activatedTextView.text = getString(R.string.service_deactivated)
+                    cancelServiceActiveNotification()
                     jobHelper.cancelAllJobs()
                 }
             }
@@ -130,10 +125,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun setUpSeekBars() {
-        tinyBreakDurationSeekBar.setOnSeekBarChangeListener(this)
-        tinyBreakEverySeekBar.setOnSeekBarChangeListener(this)
-        bigBreakDurationSeekBar.setOnSeekBarChangeListener(this)
-        bigBreakEverySeekBar.setOnSeekBarChangeListener(this)
+        breakDurationSeekBar.setOnSeekBarChangeListener(this)
+        breakEverySeekBar.setOnSeekBarChangeListener(this)
     }
 
     /**
@@ -143,7 +136,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     private fun setUpCheckBoxes() {
         tinyBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
             // save user preference
-            sp.edit().putBoolean(PREF_TINY_BREAK_ENABLED, isChecked).apply()
+            sp.edit().putBoolean(PREF_BREAK_ENABLED, isChecked).apply()
 
             // block/unlock the layout
             tinyBreakLayout.setIsEnabledForChildren(isChecked)
@@ -152,19 +145,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             reschedule()
         }
 
-        bigBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            sp.edit().putBoolean(PREF_BIG_BREAK_ENABLED, isChecked).apply()
-            bigBreakLayout.setIsEnabledForChildren(isChecked)
-            reschedule()
-        }
-
         notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
-            reschedule()
-        }
-
-        notificImportanceCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            sp.edit().putBoolean(PREF_HIGH_IMPORTANCE, isChecked).apply()
             reschedule()
         }
 
@@ -204,25 +186,14 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
-        var jobToSchedule: Job
+        val jobToSchedule: Job
 
         if (tinyBreakCheckBox.isChecked) {
-            jobToSchedule = Job(breakType = BREAK_TYPE_TINY,
-                    breakEvery = tinyBreakEverySeekBar.getProgress(this),
-                    breakDuration = tinyBreakDurationSeekBar.getProgress(this),
+            jobToSchedule = Job(breakEvery = breakEverySeekBar.getProgress(this),
+                    breakDuration = breakDurationSeekBar.getProgress(this),
                     areNotificationsEnabled = notificCheckBox.isChecked,
-                    highImportance = notificImportanceCheckBox.isChecked,
                     isLowerBrightness = notificBrightnessCheckBox.isChecked)
-            jobHelper.scheduleJob(jobToSchedule)
-        }
 
-        if (bigBreakCheckBox.isChecked) {
-            jobToSchedule = Job(breakType = BREAK_TYPE_BIG,
-                    breakEvery = bigBreakEverySeekBar.getProgress(this, BIG_BREAK_ARRAY_SHIFT),
-                    breakDuration = bigBreakDurationSeekBar.getProgress(this, BIG_BREAK_ARRAY_SHIFT),
-                    areNotificationsEnabled = notificCheckBox.isChecked,
-                    highImportance = notificImportanceCheckBox.isChecked,
-                    isLowerBrightness = notificBrightnessCheckBox.isChecked)
             jobHelper.scheduleJob(jobToSchedule)
         }
     }
@@ -235,9 +206,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 schedule()
             } else {
                 if (serviceToggleButton.isChecked) {
+                    Log.d(TAG, "Rescheduling...")
                     schedule()
+                } else {
+                    Log.d(TAG, "No need to reschedule.")
                 }
-                Log.d(TAG, "No need to reschedule.")
             }
         } else {
             requestWriteSettingsPermission()
@@ -259,40 +232,62 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
 
         // Checkboxes
-        val isTinyBreakEnabled = sp.getBoolean(PREF_TINY_BREAK_ENABLED, false)
-        val isBigBreakEnabled = sp.getBoolean(PREF_BIG_BREAK_ENABLED, false)
-
+        val isTinyBreakEnabled = sp.getBoolean(PREF_BREAK_ENABLED, false)
         tinyBreakCheckBox.isChecked = isTinyBreakEnabled
         tinyBreakLayout.setIsEnabledForChildren(isTinyBreakEnabled)
 
-        bigBreakCheckBox.isChecked = isBigBreakEnabled
-        bigBreakLayout.setIsEnabledForChildren(isBigBreakEnabled)
-
         // Break length/duration SeekBars
-        tinyBreakEverySeekBar.progress = sp.getInt(PREF_TINY_BREAK_EVERY, 0)
-        bigBreakEverySeekBar.progress = sp.getInt(PREF_BIG_BREAK_EVERY, 0)
-        tinyBreakDurationSeekBar.progress = sp.getInt(PREF_TINY_BREAK_DURATION, 0)
-        bigBreakDurationSeekBar.progress = sp.getInt(PREF_BIG_BREAK_DURATION, 0)
+        breakEverySeekBar.progress = sp.getInt(PREF_BREAK_EVERY, 0)
+        breakDurationSeekBar.progress = sp.getInt(PREF_BREAK_DURATION, 0)
 
         // Break length/duration textViews connected with their SeekBars
         tinyBreakDurationValTextView.text =
-                tinyBreakDurationSeekBar.getProgressLabel(this)
+                breakDurationSeekBar.getProgressLabel(this)
         tinyBreakEveryValTextView.text =
-                tinyBreakEverySeekBar.getProgressLabel(this)
-        bigBreakDurationValTextView.text =
-                bigBreakDurationSeekBar.getProgressLabel(this, BIG_BREAK_ARRAY_SHIFT)
-        bigBreakEveryValTextView.text =
-                bigBreakEverySeekBar.getProgressLabel(this, BIG_BREAK_ARRAY_SHIFT)
+                breakEverySeekBar.getProgressLabel(this)
 
         // Notifications section
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
-        notificImportanceCheckBox.isChecked = sp.getBoolean(PREF_HIGH_IMPORTANCE, true)
         notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, true)
+    }
+
+    private fun showServiceActiveNotification() {
+        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
+        val title = getString(R.string.service_is_active)
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val contentIntent = PendingIntent.getActivity(this, 0,
+                intent, 0)
+
+        val builder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
+                .setWhen(System.currentTimeMillis())
+                .setContentIntent(contentIntent)
+                .setContentTitle(title)
+                .setSmallIcon(R.drawable.ic_eye_black)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setColor(Color.MAGENTA)
+                .setOngoing(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            nm.setNotificationChannel(SERVICE_CHANNEL_ID,
+                    getString(R.string.service_notification_channel_name),
+                    NotificationManager.IMPORTANCE_MIN)
+            builder.setChannelId(SERVICE_CHANNEL_ID)
+        }
+
+        val notification = builder.build()
+        nm.notify(R.string.service_is_active, notification)
+    }
+
+    private fun cancelServiceActiveNotification() {
+        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(R.string.service_is_active)
     }
 
     private companion object {
         val TAG = "MainActivity"
         val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
-        val BIG_BREAK_ARRAY_SHIFT = 6
+        val SERVICE_CHANNEL_ID = "blink_break_channel_id"
     }
 }
