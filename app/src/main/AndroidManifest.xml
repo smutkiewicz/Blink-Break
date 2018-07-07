@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -23,10 +24,19 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".BlinkBreakJobService"
-            android:label="BlinkBreakJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name=".alarmmanager.BlinkBreakAlarmService"
+            android:exported="false"/>
+
+        <receiver android:name=".alarmmanager.BlinkBreakReceiver"
+            android:process=":remote">
+        </receiver>
+
+        <receiver android:name=".alarmmanager.BootBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

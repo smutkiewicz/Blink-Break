@@ -1,4 +1,4 @@
-package com.smutkiewicz.blinkbreak
+package com.smutkiewicz.blinkbreak.jobscheduler
 
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -12,6 +12,8 @@ import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.v4.app.NotificationCompat
 import android.util.Log
+import com.smutkiewicz.blinkbreak.MainActivity
+import com.smutkiewicz.blinkbreak.R
 import com.smutkiewicz.blinkbreak.extensions.getBooleanValue
 import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
 import com.smutkiewicz.blinkbreak.util.*
@@ -29,7 +31,6 @@ class BlinkBreakJobService : JobService() {
 
     override fun onStartJob(params: JobParameters): Boolean {
         Log.i(TAG, "on start job: ${params.jobId}")
-        sendMessage(MSG_START, params.jobId)
 
         // save current brightness to switch it in the future
         saveUserScreenBrightness()
@@ -56,7 +57,6 @@ class BlinkBreakJobService : JobService() {
             cancelNotification()
 
             Log.i(TAG, "on finish job: ${params.jobId}")
-            sendMessage(MSG_STOP, params.jobId)
             jobFinished(params, true)
         }, duration)
 
@@ -64,7 +64,6 @@ class BlinkBreakJobService : JobService() {
     }
 
     override fun onStopJob(params: JobParameters): Boolean {
-        sendMessage(MSG_STOP, params.jobId)
         Log.i(TAG, "on stop job: ${params.jobId}")
 
         if (lowerBrightnessActivated) {
@@ -72,7 +71,7 @@ class BlinkBreakJobService : JobService() {
             setScreenBrightness(userBrightness)
         }
 
-        return false
+        return true
     }
 
     private fun saveUserScreenBrightness() {
@@ -137,7 +136,7 @@ class BlinkBreakJobService : JobService() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             nm.setNotificationChannel(SERVICE_SINGLE_JOB_CHANNEL_ID,
-                    getString(R.string.service_job_notification_channel_name),
+                    getString(R.string.service_task_notification_channel_name),
                     NotificationManager.IMPORTANCE_LOW)
             builder.setChannelId(SERVICE_SINGLE_JOB_CHANNEL_ID)
         }

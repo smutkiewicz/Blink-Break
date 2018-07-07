@@ -5,7 +5,7 @@
     <string name="local_service_disconnected">Local service disconnected</string>
     <string name="local_service_connected">Local service connected</string>
 
-    <string name="cancelled_job">Cancelled job %d</string>
+    <string name="cancelled_job">Cancelled task %d</string>
     <string name="no_jobs_to_cancel">No jobs to cancel</string>
     <string name="all_jobs_cancelled">All jobs cancelled</string>
     <string name="write_settings_required">Write settings permission required.</string>
@@ -24,6 +24,6 @@
     <string name="notifications_lower_brightness">Lower brightness on the device during the break</string>
     <string name="service_is_active">Blink Break service is active.</string>
 
-    <string name="service_job_notification_channel_name">Blink Break Job</string>
+    <string name="service_task_notification_channel_name">Blink Break Job</string>
     <string name="service_notification_channel_name">Blink Break</string>
 </resources>

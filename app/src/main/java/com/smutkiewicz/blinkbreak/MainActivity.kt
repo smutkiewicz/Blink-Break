@@ -9,7 +9,6 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Messenger
 import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.design.widget.Snackbar
@@ -20,19 +19,18 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.SeekBar
+import com.smutkiewicz.blinkbreak.alarmmanager.AlarmHelper
 import com.smutkiewicz.blinkbreak.extensions.*
-import com.smutkiewicz.blinkbreak.model.Job
+import com.smutkiewicz.blinkbreak.model.Task
 import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
-
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
-    lateinit private var layout: View
-    lateinit private var handler: IncomingMessageHandler
-    lateinit private var jobHelper: JobSchedulerHelper
-    lateinit private var sp: SharedPreferences
+    private lateinit var layout: View
+    private lateinit var alarmHelper: AlarmHelper
+    private lateinit var sp: SharedPreferences
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +38,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         setSupportActionBar(toolbar)
 
         layout = findViewById(R.id.layout)
-        handler = IncomingMessageHandler(this)
-        jobHelper = JobSchedulerHelper(this)
+        alarmHelper = AlarmHelper(this)
         sp = PreferenceManager.getDefaultSharedPreferences(this)
 
         setUserSettings()
@@ -54,16 +51,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
     }
 
-    override fun onStop() {
-        stopService(Intent(this, BlinkBreakJobService::class.java))
-        super.onStop()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        bindToBlinkBreakService()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -74,7 +61,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
-
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, p2: Boolean) {
         var prefName = ""
@@ -118,7 +104,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 else -> {
                     activatedTextView.text = getString(R.string.service_deactivated)
                     cancelServiceActiveNotification()
-                    jobHelper.cancelAllJobs()
+                    alarmHelper.cancelAlarm()
                 }
             }
         }
@@ -156,17 +142,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
     }
 
-    /**
-     * Binds active job service to our Activity. This is needed for catching eventual callbacks
-     * from the service.
-     */
-    private fun bindToBlinkBreakService() {
-        val startServiceIntent = Intent(this, BlinkBreakJobService::class.java)
-        val messengerIncoming = Messenger(handler)
-        startServiceIntent.putExtra(MESSENGER_INTENT_KEY, messengerIncoming)
-        startService(startServiceIntent)
-    }
-
     private fun requestWriteSettingsPermission() {
         layout.showSnackbar(R.string.write_settings_required,
                 Snackbar.LENGTH_INDEFINITE, R.string.ok) {
@@ -186,24 +161,26 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
-        val jobToSchedule: Job
+        val taskToSchedule: Task
 
         if (tinyBreakCheckBox.isChecked) {
-            jobToSchedule = Job(breakEvery = breakEverySeekBar.getProgress(this),
+            taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgress(this),
                     breakDuration = breakDurationSeekBar.getProgress(this),
                     areNotificationsEnabled = notificCheckBox.isChecked,
                     isLowerBrightness = notificBrightnessCheckBox.isChecked)
 
-            jobHelper.scheduleJob(jobToSchedule)
+            alarmHelper.scheduleAlarm(taskToSchedule)
         }
     }
 
     private fun reschedule() {
         if (checkForWritePermissions()) {
-            if (jobHelper.checkIfThereArePendingJobs()) {
+            if (alarmHelper.checkIfThereArePendingTasks()) {
+
                 Log.d(TAG, "Rescheduling...")
-                jobHelper.cancelAllJobs()
+                alarmHelper.cancelAlarm()
                 schedule()
+
             } else {
                 if (serviceToggleButton.isChecked) {
                     Log.d(TAG, "Rescheduling...")
@@ -223,7 +200,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
      */
     private fun setUserSettings() {
         // service activated/deactivated CardView
-        if (jobHelper.checkIfThereArePendingJobs()) {
+        if (alarmHelper.checkIfThereArePendingTasks()) {
             serviceToggleButton.isChecked = true
             activatedTextView.text = getString(R.string.service_activated)
         } else {
@@ -285,9 +262,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         nm.cancel(R.string.service_is_active)
     }
 
-    private companion object {
-        val TAG = "MainActivity"
-        val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
-        val SERVICE_CHANNEL_ID = "blink_break_channel_id"
+    companion object {
+        const val TAG = "MainActivity"
+        const val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
+        const val SERVICE_CHANNEL_ID = "blink_break_channel_id"
     }
 }

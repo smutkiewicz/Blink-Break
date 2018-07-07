@@ -16,6 +16,3 @@ import com.smutkiewicz.blinkbreak.BuildConfig
 @JvmField val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"
 @JvmField val NOTIFICATIONS_KEY = "${BuildConfig.APPLICATION_ID}.NOTIFICATIONS_KEY"
 @JvmField val LOWER_BRIGHTNESS_KEY = "${BuildConfig.APPLICATION_ID}.LOWER_BRIGHTNESS_KEY"
-
-@JvmField val MSG_START = 2
-@JvmField val MSG_STOP = 3
