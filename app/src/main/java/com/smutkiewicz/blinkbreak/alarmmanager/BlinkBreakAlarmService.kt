@@ -2,6 +2,7 @@ package com.smutkiewicz.blinkbreak.alarmmanager
 
 import android.app.*
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Build
 import android.preference.PreferenceManager
@@ -11,23 +12,24 @@ import android.support.v4.content.WakefulBroadcastReceiver
 import android.util.Log
 import com.smutkiewicz.blinkbreak.MainActivity
 import com.smutkiewicz.blinkbreak.R
+import com.smutkiewicz.blinkbreak.extensions.getProgress
 import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
-import com.smutkiewicz.blinkbreak.util.BREAK_DURATION_KEY
-import com.smutkiewicz.blinkbreak.util.LOWER_BRIGHTNESS_KEY
-import com.smutkiewicz.blinkbreak.util.NOTIFICATIONS_KEY
-import com.smutkiewicz.blinkbreak.util.PREF_USER_BRIGHTNESS
+import com.smutkiewicz.blinkbreak.util.*
 import java.util.*
 
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
-    private var lowerBrightnessActivated = true
     private var userBrightness: Int = 0
+    private var sp: SharedPreferences? = null
 
     // the Service onStart callback
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(1, getServiceActiveNotification())
         }
+
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -41,17 +43,18 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         saveUserScreenBrightness()
 
         // get user's job parameters
-        val duration = intent!!.getLongExtra(BREAK_DURATION_KEY, 5000)
-        val notifications = intent.getBooleanExtra(NOTIFICATIONS_KEY, true)
-        lowerBrightnessActivated = intent.getBooleanExtra(LOWER_BRIGHTNESS_KEY, true)
+        val notifications = sp!!.getBoolean(PREF_NOTIFICATIONS, true)
+        val drawRsiWindow = sp!!.getBoolean(PREF_RSI_BREAK_WINDOW, false)
+        val lowerBrightnessActivated = sp!!.getBoolean(PREF_LOWER_BRIGHTNESS, true)
 
-        when {
-            notifications -> showNotification()
-        }
+        // get duration preference, it's stored as SeekBar step in user's SP
+        val durationProgress = sp!!.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
+        // so we have to map it to millis
+        val duration = getProgress(this, durationProgress)
 
-        when {
-            lowerBrightnessActivated -> setScreenBrightness(0)
-        }
+        when { notifications -> showNotification() }
+        when { lowerBrightnessActivated -> setScreenBrightness(0) }
+        when { drawRsiWindow -> drawRsiWindow() }
 
         Timer().schedule(object : TimerTask() {
             override fun run() {
@@ -61,6 +64,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     setScreenBrightness(userBrightness)
                 }
 
+                removeRsiWindow()
                 cancelNotification()
             }
         }, duration)
@@ -89,6 +93,14 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     brightnessValue
             )
         }
+    }
+
+    private fun drawRsiWindow() {
+
+    }
+
+    private fun removeRsiWindow() {
+
     }
 
     private fun showNotification() {

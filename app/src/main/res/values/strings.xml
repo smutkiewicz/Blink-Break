@@ -14,7 +14,7 @@
     <string name="service_deactivated">Blink Break Deactivated</string>
     <string name="break_duration">For a duration of:</string>
     <string name="break_duration_sample">0</string>
-    <string name="break_every">Break every:</string>
+    <string name="break_every">Break:</string>
     <string name="break_every_sample">0</string>
     <string name="ok">OK</string>
     <string name="break_options">Break options</string>
@@ -26,4 +26,6 @@
 
     <string name="service_task_notification_channel_name">Blink Break Job</string>
     <string name="service_notification_channel_name">Blink Break</string>
+    <string name="show_rsi_break_window">Show RSI break window on top of your apps</string>
+    <string name="draw_overlay_required">Draw Overlay permission required.</string>
 </resources>

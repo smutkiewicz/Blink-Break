@@ -5,12 +5,13 @@ package com.smutkiewicz.blinkbreak.util
 
 import com.smutkiewicz.blinkbreak.BuildConfig
 
-@JvmField val PREF_BREAK_ENABLED = "tiny_break_enabled"
-@JvmField val PREF_BREAK_EVERY = "tiny_break_every"
-@JvmField val PREF_BREAK_DURATION = "tiny_break_duration"
-@JvmField val PREF_NOTIFICATIONS = "notifications"
-@JvmField val PREF_LOWER_BRIGHTNESS = "lower_brightness"
-@JvmField val PREF_USER_BRIGHTNESS = "user_brightness"
+const val PREF_BREAK_ENABLED = "tiny_break_enabled"
+const val PREF_BREAK_EVERY_PROGRESS = "tiny_break_every"
+const val PREF_BREAK_DURATION_PROGRESS = "tiny_break_duration"
+const val PREF_NOTIFICATIONS = "notifications"
+const val PREF_LOWER_BRIGHTNESS = "lower_brightness"
+const val PREF_USER_BRIGHTNESS = "user_brightness"
+const val PREF_RSI_BREAK_WINDOW = "rsi_break_window"
 
 @JvmField val MESSENGER_INTENT_KEY = "${BuildConfig.APPLICATION_ID}.MESSENGER_INTENT_KEY"
 @JvmField val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"

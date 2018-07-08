@@ -4,13 +4,32 @@ import android.content.Context
 import android.widget.SeekBar
 import com.smutkiewicz.blinkbreak.R
 
-fun SeekBar.getProgress(context: Context): Int {
+/**
+ * Set of extensions for mapping array resources to seekbars' progress values.
+ */
+fun SeekBar.getProgress(context: Context): Long =
+        getProgressValue(context, R.array.break_duration_val_array)
+
+fun SeekBar.getProgressLabel(context: Context): String =
+        getLabel(context, R.array.break_duration_array)
+
+fun SeekBar.getProgressFrequency(context: Context): Long =
+        getProgressValue(context, R.array.break_frequency_val_array)
+
+fun SeekBar.getProgressFrequencyLabel(context: Context): String =
+        getLabel(context, R.array.break_frequency_array)
+
+fun getProgress(context: Context, progress: Int): Long {
     val intArray = context.resources.getIntArray(R.array.break_duration_val_array)
-    return intArray[progress]
+    return intArray[progress].toLong()
 }
 
-
-fun SeekBar.getProgressLabel(context: Context): String {
-    val stringArray = context.resources.getStringArray(R.array.break_duration_array)
+private fun SeekBar.getLabel(context: Context, resId: Int) : String {
+    val stringArray = context.resources.getStringArray(resId)
     return stringArray[progress]
+}
+
+private fun SeekBar.getProgressValue(context: Context, resId: Int): Long {
+    val intArray = context.resources.getIntArray(resId)
+    return intArray[progress].toLong()
 }

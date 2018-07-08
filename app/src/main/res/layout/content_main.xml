@@ -69,7 +69,7 @@
             app:layout_constraintTop_toBottomOf="@+id/service_on_off_card_view">
 
             <android.support.constraint.ConstraintLayout
-                android:id="@+id/tinyBreakLayout"
+                android:id="@+id/breakLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -91,7 +91,7 @@
                     app:layout_constraintVertical_bias="0.0" />
 
                 <CheckBox
-                    android:id="@+id/tinyBreakCheckBox"
+                    android:id="@+id/breakCheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -118,7 +118,7 @@
                     app:layout_constraintVertical_bias="0.25" />
 
                 <TextView
-                    android:id="@+id/tinyBreakEveryValTextView"
+                    android:id="@+id/breakEveryValTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -140,7 +140,7 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
-                    android:max="8"
+                    android:max="4"
                     android:progress="0"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -165,7 +165,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/break_duration_text_view" />
 
                 <TextView
-                    android:id="@+id/tinyBreakDurationValTextView"
+                    android:id="@+id/breakDurationValTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -215,7 +215,7 @@
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/notificationsLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
                 <CheckBox
                     android:id="@+id/notificCheckBox"
@@ -249,16 +249,30 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:checked="true"
                     android:text="@string/notifications_lower_brightness"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/notificationsTextView"
+                    app:layout_constraintVertical_bias="0.0" />
+
+                <CheckBox
+                    android:id="@+id/notificRsiWindowCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/show_rsi_break_window"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/notificationsTextView" />
+                    app:layout_constraintTop_toBottomOf="@+id/notificBrightnessCheckBox"
+                    app:layout_constraintVertical_bias="0.0" />
 
             </android.support.constraint.ConstraintLayout>
 

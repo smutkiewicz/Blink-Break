@@ -5,23 +5,24 @@ import android.app.PendingIntent
 import android.app.PendingIntent.getBroadcast
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.SystemClock
+import android.preference.PreferenceManager
 import android.util.Log
 import com.smutkiewicz.blinkbreak.model.Task
 import com.smutkiewicz.blinkbreak.util.BREAK_DURATION_KEY
-import com.smutkiewicz.blinkbreak.util.LOWER_BRIGHTNESS_KEY
-import com.smutkiewicz.blinkbreak.util.NOTIFICATIONS_KEY
 
 class AlarmHelper(private val context: Context) {
+
+    private var sp: SharedPreferences? = null
 
     fun scheduleAlarm(task: Task?) {
         // Construct an intent that will execute the AlarmReceiver
         val intent = Intent(context, BlinkBreakReceiver::class.java)
 
         // Extras, periodic fire time of the break and its duration
-        intent.putExtra(BREAK_DURATION_KEY, task!!.breakDuration.toLong())
-        intent.putExtra(NOTIFICATIONS_KEY, task.areNotificationsEnabled)
-        intent.putExtra(LOWER_BRIGHTNESS_KEY, task.isLowerBrightness)
+        sp = PreferenceManager.getDefaultSharedPreferences(context)
+        sp!!.edit().putLong(BREAK_DURATION_KEY, task!!.breakDuration).apply()
 
         // Create a PendingIntent to be triggered when the alarm goes off
         val pIntent = getBroadcast(context, BlinkBreakReceiver.REQUEST_CODE,
@@ -32,7 +33,7 @@ class AlarmHelper(private val context: Context) {
 
         alarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
                 firstMillis + task.breakEvery,
-                task.breakEvery.toLong(), pIntent)
+                task.breakEvery, pIntent)
 
         Log.d(TAG, "Alarm scheduled.")
     }

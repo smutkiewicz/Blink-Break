@@ -6,11 +6,9 @@ import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.provider.Settings
 import android.support.design.widget.Snackbar
 import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
@@ -26,6 +24,8 @@ import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
+
+
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     private lateinit var layout: View
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         setSupportActionBar(toolbar)
 
         layout = findViewById(R.id.layout)
-        alarmHelper = AlarmHelper(this)
+        alarmHelper = AlarmHelper(applicationContext)
         sp = PreferenceManager.getDefaultSharedPreferences(this)
 
         setUserSettings()
@@ -67,15 +67,15 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
         when (seekBar) {
             breakDurationSeekBar -> {
-                prefName = PREF_BREAK_DURATION
-                tinyBreakDurationValTextView.text =
+                prefName = PREF_BREAK_DURATION_PROGRESS
+                breakDurationValTextView.text =
                         breakDurationSeekBar.getProgressLabel(this)
             }
 
             breakEverySeekBar -> {
-                prefName = PREF_BREAK_EVERY
-                tinyBreakEveryValTextView.text =
-                        breakEverySeekBar.getProgressLabel(this)
+                prefName = PREF_BREAK_EVERY_PROGRESS
+                breakEveryValTextView.text =
+                        breakEverySeekBar.getProgressFrequencyLabel(this)
             }
         }
 
@@ -120,12 +120,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
      * Checkboxes are part of UI responsible for enabling/disabling breaks' settings.
      */
     private fun setUpCheckBoxes() {
-        tinyBreakCheckBox.setOnCheckedChangeListener { _, isChecked ->
+        breakCheckBox.setOnCheckedChangeListener { _, isChecked ->
             // save user preference
             sp.edit().putBoolean(PREF_BREAK_ENABLED, isChecked).apply()
 
             // block/unlock the layout
-            tinyBreakLayout.setIsEnabledForChildren(isChecked)
+            breakLayout.setIsEnabledForChildren(isChecked)
 
             // settings changed, reschedule if needed
             reschedule()
@@ -133,38 +133,41 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
         notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
-            reschedule()
         }
 
         notificBrightnessCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_LOWER_BRIGHTNESS, isChecked).apply()
-            reschedule()
+        }
+
+        notificRsiWindowCheckBox.setOnCheckedChangeListener {_, isChecked ->
+            if (checkForDrawOverlaysPermissions()) {
+                sp.edit().putBoolean(PREF_RSI_BREAK_WINDOW, isChecked).apply()
+            } else {
+                notificRsiWindowCheckBox.isChecked = false
+                requestDrawOverlayPermission()
+            }
         }
     }
 
     private fun requestWriteSettingsPermission() {
         layout.showSnackbar(R.string.write_settings_required,
                 Snackbar.LENGTH_INDEFINITE, R.string.ok) {
-            openAndroidPermissionsMenu()
+            createWritePermissionsIntent()
         }
     }
 
-    /**
-     * Opens app's settings menu, as WRITE_SETTINGS permission requires intent to Settings.
-     */
-    private fun openAndroidPermissionsMenu() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
-            intent.data = Uri.parse("package:" + packageName)
-            startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
+    private fun requestDrawOverlayPermission() {
+        layout.showSnackbar(R.string.draw_overlay_required,
+                Snackbar.LENGTH_INDEFINITE, R.string.ok) {
+            createDrawOverlayPermissionsIntent()
         }
     }
 
     private fun schedule() {
         val taskToSchedule: Task
 
-        if (tinyBreakCheckBox.isChecked) {
-            taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgress(this),
+        if (breakCheckBox.isChecked) {
+            taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgressFrequency(this),
                     breakDuration = breakDurationSeekBar.getProgress(this),
                     areNotificationsEnabled = notificCheckBox.isChecked,
                     isLowerBrightness = notificBrightnessCheckBox.isChecked)
@@ -210,18 +213,18 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
         // Checkboxes
         val isTinyBreakEnabled = sp.getBoolean(PREF_BREAK_ENABLED, false)
-        tinyBreakCheckBox.isChecked = isTinyBreakEnabled
-        tinyBreakLayout.setIsEnabledForChildren(isTinyBreakEnabled)
+        breakCheckBox.isChecked = isTinyBreakEnabled
+        breakLayout.setIsEnabledForChildren(isTinyBreakEnabled)
 
         // Break length/duration SeekBars
-        breakEverySeekBar.progress = sp.getInt(PREF_BREAK_EVERY, 0)
-        breakDurationSeekBar.progress = sp.getInt(PREF_BREAK_DURATION, 0)
+        breakEverySeekBar.progress = sp.getInt(PREF_BREAK_EVERY_PROGRESS, 0)
+        breakDurationSeekBar.progress = sp.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
 
         // Break length/duration textViews connected with their SeekBars
-        tinyBreakDurationValTextView.text =
+        breakDurationValTextView.text =
                 breakDurationSeekBar.getProgressLabel(this)
-        tinyBreakEveryValTextView.text =
-                breakEverySeekBar.getProgressLabel(this)
+        breakEveryValTextView.text =
+                breakEverySeekBar.getProgressFrequencyLabel(this)
 
         // Notifications section
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
@@ -265,6 +268,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     companion object {
         const val TAG = "MainActivity"
         const val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
+        const val MY_PERMISSIONS_REQUEST_DRAW_OVERLAY = 1
         const val SERVICE_CHANNEL_ID = "blink_break_channel_id"
     }
 }
