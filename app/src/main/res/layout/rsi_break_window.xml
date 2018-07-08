@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="@drawable/window_background"
+    android:orientation="vertical">
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/rsiWindowTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="@string/window_message"
+        android:textAlignment="center"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium" />
+
+    <ImageView
+        android:id="@+id/rsiWindowImageView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:padding="8dp"
+        android:src="@color/colorPrimary" />
+
+    <Button
+        android:id="@+id/rsiWindowButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="@string/skip_the_break" />
+</LinearLayout>

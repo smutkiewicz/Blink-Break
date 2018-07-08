@@ -19,6 +19,7 @@ import java.util.*
 
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
+    private var rsiWindowView: RsiWindowView? = null
     private var userBrightness: Int = 0
     private var sp: SharedPreferences? = null
 
@@ -27,10 +28,14 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         sp = PreferenceManager.getDefaultSharedPreferences(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(1, getServiceActiveNotification())
+            startForeground(FOREGROUND_ID, getServiceActiveNotification())
         }
 
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onDestroy() {
+        stopForeground(true)
     }
 
     override fun onHandleIntent(intent: Intent?) {
@@ -96,11 +101,12 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     }
 
     private fun drawRsiWindow() {
-
+        rsiWindowView = RsiWindowView(this)
     }
 
     private fun removeRsiWindow() {
-
+        rsiWindowView?.destroy()
+        rsiWindowView = null
     }
 
     private fun showNotification() {
@@ -175,7 +181,8 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     }
 
     companion object {
-        private val TAG = "BlinkBreakAlarmService"
-        private val SERVICE_SINGLE_TASK_CHANNEL_ID = "blink_break_single_task_channel_id"
+        private const val FOREGROUND_ID = 999
+        private const val TAG = "BlinkBreakAlarmService"
+        private const val SERVICE_SINGLE_TASK_CHANNEL_ID = "blink_break_single_task_channel_id"
     }
 }

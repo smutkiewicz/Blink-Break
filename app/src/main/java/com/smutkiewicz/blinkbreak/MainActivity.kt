@@ -229,6 +229,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         // Notifications section
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
         notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, true)
+        notificRsiWindowCheckBox.isChecked = sp.getBoolean(PREF_RSI_BREAK_WINDOW, false)
     }
 
     private fun showServiceActiveNotification() {

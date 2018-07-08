@@ -28,4 +28,6 @@
     <string name="service_notification_channel_name">Blink Break</string>
     <string name="show_rsi_break_window">Show RSI break window on top of your apps</string>
     <string name="draw_overlay_required">Draw Overlay permission required.</string>
+    <string name="skip_the_break">Skip the break</string>
+    <string name="window_message">Have a break. Protect yourself from RSI consequences.</string>
 </resources>
