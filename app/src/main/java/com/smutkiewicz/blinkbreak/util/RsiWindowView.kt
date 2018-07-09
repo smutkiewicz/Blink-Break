@@ -10,6 +10,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import com.smutkiewicz.blinkbreak.R
 
@@ -27,10 +28,11 @@ class RsiWindowView(private val myContext: Context, private val breakDuration: L
     init {
         addToWindowManager()
         initCountdownTimer(breakDuration)
+        initCountdownProgressBar(breakDuration)
     }
 
     private fun addToWindowManager() {
-        val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
             WindowManager.LayoutParams.TYPE_PHONE
@@ -97,12 +99,12 @@ class RsiWindowView(private val myContext: Context, private val breakDuration: L
 
     private fun initCountdownTimer(millisInFuture: Long) {
         object : CountDownTimer(millisInFuture, 1000) {
-
             var textView = frameLayout?.findViewById<TextView>(R.id.windowCountdownTextView)
 
             override fun onTick(millisUntilFinished: Long) {
                 var seconds = (millisUntilFinished / 1000)
-                val minutes = seconds / 60
+                val minutes = (seconds / 60)
+
                 seconds %= 60
                 textView?.text = (String.format("%02d", minutes)
                         + ":" + String.format("%02d", seconds))
@@ -111,7 +113,21 @@ class RsiWindowView(private val myContext: Context, private val breakDuration: L
             override fun onFinish() {
                 textView?.text = context.getString(R.string.countdown_finished)
             }
+        }.start()
+    }
 
+    private fun initCountdownProgressBar(breakDuration: Long) {
+        object : CountDownTimer(breakDuration, 10) {
+            var progressBar = frameLayout?.findViewById<ProgressBar>(R.id.progressBar)
+
+            override fun onTick(millisUntilFinished: Long) {
+                val progress: Int = (100 * (1 - millisUntilFinished.toDouble() / breakDuration.toDouble())).toInt()
+                progressBar?.progress = progress
+            }
+
+            override fun onFinish() {
+                progressBar?.progress = 100
+            }
         }.start()
     }
 
@@ -123,5 +139,9 @@ class RsiWindowView(private val myContext: Context, private val breakDuration: L
             windowManager!!.removeView(frameLayout)
             frameLayout = null
         }
+    }
+
+    companion object {
+        private const val TAG = "RsiWindowView"
     }
 }

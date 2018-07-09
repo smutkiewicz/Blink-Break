@@ -58,6 +58,8 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         // so we have to map it to millis
         duration = getProgress(this, durationProgress)
 
+        Log.d(TAG, "Break duration = " + duration)
+
         when { notifications -> showNotification() }
         when { lowerBrightnessActivated -> setScreenBrightness(0) }
         when { drawRsiWindow -> drawRsiWindow() }
