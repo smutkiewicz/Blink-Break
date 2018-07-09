@@ -22,6 +22,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     private var rsiWindowView: RsiWindowView? = null
     private var userBrightness: Int = 0
     private var sp: SharedPreferences? = null
+    private var duration: Long = 0
 
     // the Service onStart callback
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -55,7 +56,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         // get duration preference, it's stored as SeekBar step in user's SP
         val durationProgress = sp!!.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
         // so we have to map it to millis
-        val duration = getProgress(this, durationProgress)
+        duration = getProgress(this, durationProgress)
 
         when { notifications -> showNotification() }
         when { lowerBrightnessActivated -> setScreenBrightness(0) }
@@ -101,7 +102,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     }
 
     private fun drawRsiWindow() {
-        rsiWindowView = RsiWindowView(this)
+        rsiWindowView = RsiWindowView(this, duration)
     }
 
     private fun removeRsiWindow() {

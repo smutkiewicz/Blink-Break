@@ -30,4 +30,5 @@
     <string name="draw_overlay_required">Draw Overlay permission required.</string>
     <string name="skip_the_break">Skip the break</string>
     <string name="window_message">Have a break. Protect yourself from RSI consequences.</string>
+    <string name="countdown_finished">Finished!</string>
 </resources>

@@ -3,11 +3,14 @@ package com.smutkiewicz.blinkbreak.util
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.CountDownTimer
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.TextView
 import com.smutkiewicz.blinkbreak.R
 
 
@@ -16,13 +19,14 @@ import com.smutkiewicz.blinkbreak.R
  * It means that the view is above every application's view on your phone -
  * until another application does the same.
  */
-class RsiWindowView(private val myContext: Context) : View(myContext) {
+class RsiWindowView(private val myContext: Context, private val breakDuration: Long) : View(myContext) {
 
-    private val frameLayout: FrameLayout = FrameLayout(context)
+    private var frameLayout: FrameLayout? = FrameLayout(context)
     private var windowManager: WindowManager? = null
 
     init {
         addToWindowManager()
+        initCountdownTimer(breakDuration)
     }
 
     private fun addToWindowManager() {
@@ -48,9 +52,11 @@ class RsiWindowView(private val myContext: Context) : View(myContext) {
 
         // Here is the place where you can inject whatever layout you want.
         layoutInflater.inflate(R.layout.rsi_break_window, frameLayout)
-        /*rsiWindowButton.setOnClickListener{
+
+        val rsiWindowButton = frameLayout?.findViewById<Button>(R.id.rsiWindowButton)
+        rsiWindowButton?.setOnClickListener{
             windowManager!!.removeView(frameLayout)
-        }*/
+        }
 
         // Support dragging the image view
         /*val imageView = frameLayout.findViewById<View>(R.id.imageView) as ImageView
@@ -89,10 +95,33 @@ class RsiWindowView(private val myContext: Context) : View(myContext) {
         })*/
     }
 
+    private fun initCountdownTimer(millisInFuture: Long) {
+        object : CountDownTimer(millisInFuture, 1000) {
+
+            var textView = frameLayout?.findViewById<TextView>(R.id.windowCountdownTextView)
+
+            override fun onTick(millisUntilFinished: Long) {
+                var seconds = (millisUntilFinished / 1000)
+                val minutes = seconds / 60
+                seconds %= 60
+                textView?.text = (String.format("%02d", minutes)
+                        + ":" + String.format("%02d", seconds))
+            }
+
+            override fun onFinish() {
+                textView?.text = context.getString(R.string.countdown_finished)
+            }
+
+        }.start()
+    }
+
     /**
      * Removes the view from window manager.
      */
     fun destroy() {
-        windowManager!!.removeView(frameLayout)
+        if (frameLayout?.isAttachedToWindow!!) {
+            windowManager!!.removeView(frameLayout)
+            frameLayout = null
+        }
     }
 }
