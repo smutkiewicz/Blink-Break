@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        getSupportActionBar()?.setDisplayShowTitleEnabled(false)
 
         layout = findViewById(R.id.layout)
         alarmHelper = AlarmHelper(applicationContext)
