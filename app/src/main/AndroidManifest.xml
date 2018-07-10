@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.smutkiewicz.blinkbreak">
 
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
@@ -25,13 +25,18 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".alarmmanager.BlinkBreakAlarmService"
-            android:exported="false"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".MainActivity"/>
 
-        <receiver android:name=".alarmmanager.BlinkBreakReceiver"
-            android:process=":remote">
-        </receiver>
+        <service
+            android:name=".alarmmanager.BlinkBreakAlarmService"
+            android:exported="false" />
 
+        <receiver
+            android:name=".alarmmanager.BlinkBreakReceiver"
+            android:process=":remote" />
         <receiver android:name=".alarmmanager.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

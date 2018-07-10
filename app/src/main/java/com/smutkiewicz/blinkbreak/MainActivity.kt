@@ -24,8 +24,6 @@ import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
-
-
 class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     private lateinit var layout: View
@@ -61,7 +59,16 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> {
+                try {
+                    val preferencesIntent = Intent(this, SettingsActivity::class.java)
+                    startActivity(preferencesIntent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
 
@@ -85,8 +92,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         sp.edit().putInt(prefName, progress).apply()
     }
 
-    override fun onStopTrackingTouch(p0: SeekBar?) {
-        reschedule()
+    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+        when (seekBar) {
+            breakEverySeekBar -> reschedule()
+        }
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -95,14 +104,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         serviceToggleButton.setOnCheckedChangeListener{ _, isChecked ->
             when {
                 isChecked -> {
-                    if (checkForWritePermissions()) {
-                        activatedTextView.text = getString(R.string.service_activated)
-                        showServiceActiveNotification()
-                        schedule()
-                    } else {
-                        requestWriteSettingsPermission()
-                        serviceToggleButton.isChecked = false
-                    }
+                    activatedTextView.text = getString(R.string.service_activated)
+                    showServiceActiveNotification()
+                    schedule()
                 }
                 else -> {
                     activatedTextView.text = getString(R.string.service_deactivated)
@@ -139,7 +143,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
 
         notificBrightnessCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            sp.edit().putBoolean(PREF_LOWER_BRIGHTNESS, isChecked).apply()
+            if (checkForWritePermissions()) {
+                sp.edit().putBoolean(PREF_LOWER_BRIGHTNESS, isChecked).apply()
+            } else {
+                notificBrightnessCheckBox.isChecked = false
+                requestWriteSettingsPermission()
+            }
         }
 
         notificRsiWindowCheckBox.setOnCheckedChangeListener {_, isChecked ->
@@ -180,23 +189,19 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun reschedule() {
-        if (checkForWritePermissions()) {
-            if (alarmHelper.checkIfThereArePendingTasks()) {
+        if (alarmHelper.checkIfThereArePendingTasks()) {
 
-                Log.d(TAG, "Rescheduling...")
-                alarmHelper.cancelAlarm()
-                schedule()
+            Log.d(TAG, "Rescheduling...")
+            alarmHelper.cancelAlarm()
+            schedule()
 
-            } else {
-                if (serviceToggleButton.isChecked) {
-                    Log.d(TAG, "Rescheduling...")
-                    schedule()
-                } else {
-                    Log.d(TAG, "No need to reschedule.")
-                }
-            }
         } else {
-            requestWriteSettingsPermission()
+            if (serviceToggleButton.isChecked) {
+                Log.d(TAG, "Rescheduling...")
+                schedule()
+            } else {
+                Log.d(TAG, "No need to reschedule.")
+            }
         }
     }
 
@@ -231,7 +236,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
         // Notifications section
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
-        notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, true)
+        notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, false)
         notificRsiWindowCheckBox.isChecked = sp.getBoolean(PREF_RSI_BREAK_WINDOW, false)
     }
 

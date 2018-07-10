@@ -51,7 +51,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         // get user's job parameters
         val notifications = sp!!.getBoolean(PREF_NOTIFICATIONS, true)
         val drawRsiWindow = sp!!.getBoolean(PREF_RSI_BREAK_WINDOW, false)
-        val lowerBrightnessActivated = sp!!.getBoolean(PREF_LOWER_BRIGHTNESS, true)
+        val lowerBrightnessActivated = sp!!.getBoolean(PREF_LOWER_BRIGHTNESS, false)
 
         // get duration preference, it's stored as SeekBar step in user's SP
         val durationProgress = sp!!.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
@@ -72,7 +72,6 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     setScreenBrightness(userBrightness)
                 }
 
-                removeRsiWindow()
                 cancelNotification()
             }
         }, duration)

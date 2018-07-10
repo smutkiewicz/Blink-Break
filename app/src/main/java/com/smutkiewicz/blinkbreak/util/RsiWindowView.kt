@@ -20,7 +20,7 @@ import com.smutkiewicz.blinkbreak.R
  * It means that the view is above every application's view on your phone -
  * until another application does the same.
  */
-class RsiWindowView(private val myContext: Context, private val breakDuration: Long) : View(myContext) {
+class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
 
     private var frameLayout: FrameLayout? = FrameLayout(context)
     private var windowManager: WindowManager? = null
@@ -112,6 +112,7 @@ class RsiWindowView(private val myContext: Context, private val breakDuration: L
 
             override fun onFinish() {
                 textView?.text = context.getString(R.string.countdown_finished)
+                destroy()
             }
         }.start()
     }
