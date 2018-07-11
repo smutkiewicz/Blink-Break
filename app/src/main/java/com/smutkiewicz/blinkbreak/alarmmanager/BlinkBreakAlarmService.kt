@@ -16,6 +16,13 @@ import com.smutkiewicz.blinkbreak.extensions.getProgress
 import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
 import com.smutkiewicz.blinkbreak.util.*
 import java.util.*
+import android.content.Context.KEYGUARD_SERVICE
+import android.app.KeyguardManager
+import android.content.Context
+import android.os.PowerManager
+
+
+
 
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
@@ -70,8 +77,8 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     setScreenBrightness(userBrightness)
                 }
 
-                removeRsiWindow()
-                cancelNotification()
+                when { notifications -> cancelNotification() }
+                when { drawRsiWindow -> removeRsiWindow() }
             }
         }, duration)
     }
@@ -102,7 +109,24 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     }
 
     private fun drawRsiWindow() {
-        rsiWindowView = RsiWindowView(this, duration)
+        val myKM = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val isScreenOn = powerManager.isScreenOn
+
+        when {
+            !myKM.inKeyguardRestrictedInputMode() -> {//it is not locked
+                when {
+                    isScreenOn -> {
+                        Log.d(TAG, "Device is not locked")
+                        rsiWindowView = RsiWindowView(this, duration)
+                    } else -> {
+                        Log.d(TAG, "Device screen is off")
+                    }
+                }
+            } else -> {
+                Log.d(TAG, "Device screen is locked")
+            }
+        }
     }
 
     private fun removeRsiWindow() {

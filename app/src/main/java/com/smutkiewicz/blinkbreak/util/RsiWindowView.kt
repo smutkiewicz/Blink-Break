@@ -100,7 +100,8 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
      * Removes the view from window manager.
      */
     fun destroy() {
-        if (frameLayout?.isAttachedToWindow!!) {
+        val isAttachedToWindow: Boolean? = frameLayout?.isAttachedToWindow
+        if (isAttachedToWindow != null && isAttachedToWindow) {
             windowManager!!.removeView(frameLayout)
             frameLayout = null
         }
