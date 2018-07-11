@@ -2,13 +2,9 @@
     <string name="app_name">Blink Break</string>
     <string name="action_settings">Settings</string>
     <string name="blink_break_service_label">Blink Break</string>
-    <string name="local_service_disconnected">Local service disconnected</string>
-    <string name="local_service_connected">Local service connected</string>
 
-    <string name="cancelled_job">Cancelled task %d</string>
-    <string name="no_jobs_to_cancel">No jobs to cancel</string>
-    <string name="all_jobs_cancelled">All jobs cancelled</string>
     <string name="write_settings_required">Write settings permission required.</string>
+    <string name="draw_overlay_required">Draw Overlay permission required.</string>
 
     <string name="service_activated">Blink Break Activated</string>
     <string name="service_deactivated">Blink Break Deactivated</string>
@@ -22,20 +18,20 @@
     <string name="have_a_break_ticker">Protect yourself from RSI consequences.</string>
     <string name="notifications">Notifications</string>
     <string name="notifications_lower_brightness">Lower brightness on the device during the break</string>
-    <string name="service_is_active">Blink Break service is active.</string>
 
+    <string name="service_is_active">Blink Break service is active.</string>
     <string name="service_task_notification_channel_name">Blink Break Job</string>
     <string name="service_notification_channel_name">Blink Break</string>
     <string name="show_rsi_break_window">Show RSI break window on top of your apps</string>
     <string name="show_rsi_break_window_info">RSI window covers your device\'s screen,
         countdowns to the end of the break and helps you remember about them.
         You can skip the window if you want or if it\'s not the right moment for a rest.</string>
-    <string name="draw_overlay_required">Draw Overlay permission required.</string>
     <string name="skip_the_break">Skip the break</string>
     <string name="window_message">Have a break. Protect yourself from RSI consequences.</string>
     <string name="countdown_finished">Finished!</string>
     <string name="title_activity_settings">Settings</string>
 
+    <!--settings-->
     <string name="settings_info_title">About application</string>
     <string name="settings_info_summary">Version 0.5 alpha</string>
     <string name="settings_info_author">Blink Break\n\n
@@ -46,4 +42,27 @@
                                 &#169; Aesthetic Apps Studios 2018
     </string>
     <string name="settings_info_author_title">About the app</string>
+
+    <!--Welcome Screen-->
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">GOT IT</string>
+
+    <!--slider-->
+    <string name="slide_1_title">Welcome!</string>
+    <string name="slide_1_desc">The risk of suffering injury increases the longer users work without breaks.
+        Blink Break app simply offers reminders to take a break now and then. </string>
+
+    <string name="slide_2_title">What is Repetitive Strain Injury?</string>
+    <string name="slide_2_desc">Repetitive Strain Injury is an illness which can occur
+        as a result of continuous work with a mouse, keyboard or smarthphone.</string>
+
+    <string name="slide_3_title">Using breaks</string>
+    <string name="slide_3_desc">Plan your breaks with app\'s section "Break options".
+        Set an interval between them and your preffered duration of the break.</string>
+
+    <string name="slide_4_title">Notifications</string>
+    <string name="slide_4_desc">Enable notifications to be notified about the breaks. Enable RSI
+        window or lowering brightness to be forced by our alert window to have a rest and relax.
+        Blink, look away and do not stick to your phone!</string>
 </resources>

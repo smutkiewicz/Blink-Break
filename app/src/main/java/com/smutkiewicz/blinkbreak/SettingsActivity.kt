@@ -6,7 +6,6 @@ import android.preference.PreferenceFragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 
-
 class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,13 +44,11 @@ class SettingsActivity : AppCompatActivity() {
             val info = resources.getString(R.string.settings_info_author)
 
             builder.setMessage(info)
-            builder.setTitle(R.string.settings_info_author_title)
-            builder.setIcon(R.mipmap.ic_launcher_round)
-            builder.setPositiveButton(android.R.string.ok,
-                    { dialog, _ -> dialog.dismiss() }
-            )
-
-            builder.create().show()
+                    .setTitle(R.string.settings_info_author_title)
+                    .setIcon(R.mipmap.ic_launcher_round)
+                    .setPositiveButton(android.R.string.ok,
+                    { dialog, _ -> dialog.dismiss() })
+                    .create().show()
         }
     }
 

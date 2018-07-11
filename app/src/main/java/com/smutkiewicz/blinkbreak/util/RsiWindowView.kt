@@ -59,42 +59,6 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
         rsiWindowButton?.setOnClickListener{
             windowManager!!.removeView(frameLayout)
         }
-
-        // Support dragging the image view
-        /*val imageView = frameLayout.findViewById<View>(R.id.imageView) as ImageView
-        imageView.setOnTouchListener(object : OnTouchListener {
-            private var initX: Int = 0
-            private var initY: Int = 0
-            private var initTouchX: Int = 0
-            private var initTouchY: Int = 0
-
-            fun onTouch(v: View, event: MotionEvent): Boolean {
-                val x = event.rawX.toInt()
-                val y = event.rawY.toInt()
-
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        initX = params.x
-                        initY = params.y
-                        initTouchX = x
-                        initTouchY = y
-                        return true
-                    }
-
-                    MotionEvent.ACTION_UP -> return true
-
-                    MotionEvent.ACTION_MOVE -> {
-                        params.x = initX + (x - initTouchX)
-                        params.y = initY + (y - initTouchY)
-
-                        // Invalidate layout
-                        windowManager!!.updateViewLayout(frameLayout, params)
-                        return true
-                    }
-                }
-                return false
-            }
-        })*/
     }
 
     private fun initCountdownTimer(millisInFuture: Long) {

@@ -44,13 +44,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         setUpToggleButton()
         setUpSeekBars()
         setUpCheckBoxes()
-
-        if (!checkForWritePermissions()) {
-            requestWriteSettingsPermission()
-        }
-
-        Log.d(TAG, "Break duration = " + sp.getInt(PREF_BREAK_DURATION_PROGRESS, 0))
-        Log.d(TAG, "Break every = " + sp.getInt(PREF_BREAK_EVERY_PROGRESS, 0))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
