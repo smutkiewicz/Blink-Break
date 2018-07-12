@@ -65,4 +65,10 @@
     <string name="slide_4_desc">Enable notifications to be notified about the breaks. Enable RSI
         window or lowering brightness to be forced by our alert window to have a rest and relax.
         Blink, look away and do not stick to your phone!</string>
+    <string name="statistics">Statistics</string>
+    <string name="stats_last_break">Last break:</string>
+    <string name="stats_unskipped_breaks">Unskipped breaks:</string>
+    <string name="stats_skipped_breaks">Skipped breaks:</string>
+    <string name="stats_maximal_break_duration">Maximal break duration:</string>
+    <string name="stats_duration_of_unskipped_breaks">Duration of unskipped breaks:</string>
 </resources>

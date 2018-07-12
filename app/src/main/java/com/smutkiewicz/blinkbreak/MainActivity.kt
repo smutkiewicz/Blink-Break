@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     private lateinit var layout: View
     private lateinit var alarmHelper: AlarmHelper
     private lateinit var sp: SharedPreferences
+    private lateinit var statsHelper: StatsHelper
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,11 +40,13 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         layout = findViewById(R.id.layout)
         alarmHelper = AlarmHelper(applicationContext)
         sp = PreferenceManager.getDefaultSharedPreferences(this)
+        statsHelper = StatsHelper(this)
 
         setUserSettings()
         setUpToggleButton()
         setUpSeekBars()
         setUpCheckBoxes()
+        setUpStatsScreen()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -153,6 +156,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 requestDrawOverlayPermission()
             }
         }
+    }
+
+    private fun setUpStatsScreen() {
+        skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
+        unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
     }
 
     private fun requestWriteSettingsPermission() {

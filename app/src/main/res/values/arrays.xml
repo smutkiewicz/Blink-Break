@@ -15,12 +15,19 @@
         <item>1 h</item>
     </string-array>
 
+    <!--(10 sec)
+        Often (30 sec)
+        Quite often (2 min)
+        Optimally (5 min)
+        Very rarely (15 min)
+    -->
+
     <string-array name="break_frequency_array">
-        <item>Very Often (10 sec)</item>
-        <item>Often (30 sec)</item>
-        <item>Quite often (2 min)</item>
-        <item>Optimally (5 min)</item>
-        <item>Very rarely (15 min)</item>
+        <item>Very Often</item>
+        <item>Often</item>
+        <item>Quite often</item>
+        <item>Optimally</item>
+        <item>Very rarely</item>
     </string-array>
 
     <integer-array name="break_duration_val_array">

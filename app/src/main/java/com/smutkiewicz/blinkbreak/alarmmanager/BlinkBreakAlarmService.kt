@@ -21,9 +21,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.os.PowerManager
 
-
-
-
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
     private var rsiWindowView: RsiWindowView? = null

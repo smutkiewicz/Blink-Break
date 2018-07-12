@@ -61,10 +61,9 @@ class WelcomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO inversed if for tests
         // Checking for first time launch - before calling setContentView()
         sp = PreferenceManager.getDefaultSharedPreferences(this)
-        if (!sp.getBoolean(PREF_IS_FIRST_TIME_LAUNCH, true)) {
+        if (sp.getBoolean(PREF_IS_FIRST_TIME_LAUNCH, true)) { // TODO inversed if for tests
             launchHomeScreen()
             finish()
         }
@@ -140,7 +139,7 @@ class WelcomeActivity : AppCompatActivity() {
     private fun getItem(i: Int) = viewPager!!.currentItem + i
 
     private fun launchHomeScreen() {
-        sp.edit().putBoolean(PREF_IS_FIRST_TIME_LAUNCH, false)
+        sp.edit().putBoolean(PREF_IS_FIRST_TIME_LAUNCH, false).apply()
         startActivity(Intent(this@WelcomeActivity, MainActivity::class.java))
         finish()
     }
