@@ -2,6 +2,19 @@
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <CheckBoxPreference
+        android:key="pref_notifications_device_locked"
+        android:title="@string/settings_notify_when_locked_title"
+        android:defaultValue="true"
+        android:summary="@string/settings_notify_when_locked_summary"
+        android:persistent="true"/>
+
+    <Preference
+        android:key="pref_reset_stats"
+        android:title="@string/settings_reset_stats_title"
+        android:summary="@string/settings_reset_stats_summary"
+        android:persistent="true"/>
+
     <Preference
         android:key="pref_info"
         android:title="@string/settings_info_title"

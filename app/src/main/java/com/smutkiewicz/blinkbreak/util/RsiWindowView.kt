@@ -14,7 +14,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.smutkiewicz.blinkbreak.R
 import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_SKIPPED_BREAKS
-import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_UNSKIPPED_BREAKS
+
 
 /**
  * Creates the head layer view which is displayed directly on window manager.
@@ -80,10 +80,7 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
             }
 
             override fun onFinish() {
-                if (!skipped) {
-                    statsHelper?.increaseValue(STAT_UNSKIPPED_BREAKS)
-                }
-
+                updateStats()
                 textView?.text = context.getString(R.string.countdown_finished)
                 destroy()
             }
@@ -103,6 +100,13 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
                 progressBar?.progress = 100
             }
         }.start()
+    }
+
+    private fun updateStats() {
+        if (!skipped) {
+            statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
+            statsHelper?.lastBreak = StatsHelper.getTimeStamp()
+        }
     }
 
     /**

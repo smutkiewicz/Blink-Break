@@ -21,6 +21,5 @@ class BlinkBreakReceiver : BroadcastReceiver() {
     companion object {
         private val TAG = "AlarmReceiver"
         val REQUEST_CODE = 1
-        val ACTION = "com.smutkiewicz.blinkbreak"
     }
 }

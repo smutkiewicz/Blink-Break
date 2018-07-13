@@ -1,25 +1,19 @@
 package com.smutkiewicz.blinkbreak.alarmmanager
 
-import android.app.*
-import android.content.Intent
-import android.content.SharedPreferences
-import android.graphics.Color
-import android.os.Build
-import android.preference.PreferenceManager
-import android.provider.Settings
-import android.support.v4.app.NotificationCompat
-import android.support.v4.content.WakefulBroadcastReceiver
-import android.util.Log
-import com.smutkiewicz.blinkbreak.MainActivity
-import com.smutkiewicz.blinkbreak.R
-import com.smutkiewicz.blinkbreak.extensions.getProgress
-import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
-import com.smutkiewicz.blinkbreak.util.*
-import java.util.*
-import android.content.Context.KEYGUARD_SERVICE
+import android.app.IntentService
 import android.app.KeyguardManager
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
 import android.os.PowerManager
+import android.preference.PreferenceManager
+import android.provider.Settings
+import android.support.v4.content.WakefulBroadcastReceiver
+import android.util.Log
+import com.smutkiewicz.blinkbreak.extensions.getProgress
+import com.smutkiewicz.blinkbreak.util.*
+import java.util.*
 
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
@@ -33,7 +27,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         sp = PreferenceManager.getDefaultSharedPreferences(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(FOREGROUND_ID, getServiceActiveNotification())
+            startForeground(FOREGROUND_ID, NotificationsManager.getServiceActiveNotification(this))
         }
 
         return super.onStartCommand(intent, flags, startId)
@@ -62,7 +56,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         // so we have to map it to millis
         duration = getProgress(this, durationProgress)
 
-        when { notifications -> showNotification() }
+        when { notifications -> showSingleTaskActiveNotification() }
         when { lowerBrightnessActivated -> setScreenBrightness(0) }
         when { drawRsiWindow -> drawRsiWindow() }
 
@@ -74,7 +68,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     setScreenBrightness(userBrightness)
                 }
 
-                when { notifications -> cancelNotification() }
+                when { notifications -> cancelSingleTaskActiveNotification() }
                 when { drawRsiWindow -> removeRsiWindow() }
             }
         }, duration)
@@ -131,80 +125,39 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         rsiWindowView = null
     }
 
-    private fun showNotification() {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        val breakText = getString(R.string.break_options)
-        val title = getString(R.string.have_a_break_message, breakText)
-        val contentText = getString(R.string.have_a_break_ticker)
+    private fun showSingleTaskActiveNotification() {
+        val myKM = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val isScreenOn = powerManager.isScreenOn
+        val lockedDeviceNotificationsEnabled =
+                sp!!.getBoolean(PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED, true)
 
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(this, 0,
-                intent, 0)
-
-        val builder = NotificationCompat.Builder(this, SERVICE_SINGLE_TASK_CHANNEL_ID)
-                .setWhen(System.currentTimeMillis())
-                .setContentText(contentText)
-                .setContentIntent(contentIntent)
-                .setContentTitle(title)
-                .setSmallIcon(R.drawable.ic_have_a_break_24dp)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setColor(Color.MAGENTA)
-                .setOngoing(true)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nm.setNotificationChannel(SERVICE_SINGLE_TASK_CHANNEL_ID,
-                    getString(R.string.service_task_notification_channel_name),
-                    NotificationManager.IMPORTANCE_LOW)
-            builder.setChannelId(SERVICE_SINGLE_TASK_CHANNEL_ID)
+        if (lockedDeviceNotificationsEnabled) {
+            NotificationsManager.showSingleTaskActiveNotification(this)
+        } else {
+            when {
+                !myKM.inKeyguardRestrictedInputMode() -> {
+                    when {
+                    // Device is not locked
+                        isScreenOn -> {
+                            NotificationsManager.showSingleTaskActiveNotification(this)
+                        }
+                        else -> { // Device screen is off
+                        }
+                    }
+                }
+                else -> { // do nothing
+                }
+            }
         }
-
-        val notification = builder.build()
-        nm.notify(R.string.have_a_break_message, notification)
     }
 
-    private fun getServiceActiveNotification(): Notification? {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        val title = getString(R.string.service_is_active)
-
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(this, 0,
-                intent, 0)
-
-        val builder = NotificationCompat.Builder(this, MainActivity.SERVICE_CHANNEL_ID)
-                .setWhen(System.currentTimeMillis())
-                .setContentIntent(contentIntent)
-                .setContentTitle(title)
-                .setSmallIcon(R.drawable.ic_eye_black)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setColor(Color.MAGENTA)
-                .setOngoing(true)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nm.setNotificationChannel(MainActivity.SERVICE_CHANNEL_ID,
-                    getString(R.string.service_notification_channel_name),
-                    NotificationManager.IMPORTANCE_MIN)
-            builder.setChannelId(MainActivity.SERVICE_CHANNEL_ID)
-        }
-
-        return builder.build()
-        //nm.notify(R.string.service_is_active, notification)
-    }
-
-    private fun cancelServiceActiveNotification() {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        nm.cancel(R.string.service_is_active)
-    }
-
-    private fun cancelNotification() {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        nm.cancel(R.string.have_a_break_message)
+    private fun cancelSingleTaskActiveNotification() {
+        NotificationsManager.cancelSingleTaskActiveNotification(this)
     }
 
     companion object {
         private const val FOREGROUND_ID = 999
         private const val TAG = "BlinkBreakAlarmService"
-        private const val SERVICE_SINGLE_TASK_CHANNEL_ID = "blink_break_single_task_channel_id"
     }
 }

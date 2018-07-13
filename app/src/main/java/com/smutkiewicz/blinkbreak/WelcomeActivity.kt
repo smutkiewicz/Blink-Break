@@ -174,7 +174,6 @@ class WelcomeActivity : AppCompatActivity() {
 
         override fun isViewFromObject(view: View, obj: Any) = view === obj
 
-
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
             val view = `object` as View
             container.removeView(view)

@@ -27,7 +27,8 @@
         countdowns to the end of the break and helps you remember about them.
         You can skip the window if you want or if it\'s not the right moment for a rest.</string>
     <string name="skip_the_break">Skip the break</string>
-    <string name="window_message">Have a break. Protect yourself from RSI consequences.</string>
+    <string name="window_message">Have a break.
+        Protect yourself from RSI consequences - blink, look around.</string>
     <string name="countdown_finished">Finished!</string>
     <string name="title_activity_settings">Settings</string>
 
@@ -37,11 +38,16 @@
     <string name="settings_info_author">Blink Break\n\n
                                 All rights reserved\n
                                 Version 0.5\n
-                                Codename: HelloWorld\n
+                                Codename: TM01\n
                                 Author: Michał Smutkiewicz\n
                                 &#169; Aesthetic Apps Studios 2018
     </string>
     <string name="settings_info_author_title">About the app</string>
+    <string name="settings_notify_when_locked_title">Locked/screen off device notifications</string>
+    <string name="settings_notify_when_locked_summary">Show notifications also when device is locked</string>
+    <string name="settings_reset_stats_title">Reset statistics</string>
+    <string name="settings_reset_stats_summary">Reset all your app\'s statistics such as amount of skipped/unskipped breaks, their durations etc.</string>
+    <string name="settings_stats_message">All your statistics data will be lost. Continue?</string>
 
     <!--Welcome Screen-->
     <string name="next">NEXT</string>
@@ -65,10 +71,13 @@
     <string name="slide_4_desc">Enable notifications to be notified about the breaks. Enable RSI
         window or lowering brightness to be forced by our alert window to have a rest and relax.
         Blink, look away and do not stick to your phone!</string>
+
+    <!--Stats-->
     <string name="statistics">Statistics</string>
     <string name="stats_last_break">Last break:</string>
     <string name="stats_unskipped_breaks">Unskipped breaks:</string>
     <string name="stats_skipped_breaks">Skipped breaks:</string>
     <string name="stats_maximal_break_duration">Maximal break duration:</string>
     <string name="stats_duration_of_unskipped_breaks">Duration of unskipped breaks:</string>
+
 </resources>

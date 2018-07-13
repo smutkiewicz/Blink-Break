@@ -1,16 +1,10 @@
 package com.smutkiewicz.blinkbreak
 
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
-import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -102,12 +96,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             when {
                 isChecked -> {
                     activatedTextView.text = getString(R.string.service_activated)
-                    showServiceActiveNotification()
+                    NotificationsManager.showServiceActiveNotification(this)
                     schedule()
                 }
                 else -> {
                     activatedTextView.text = getString(R.string.service_deactivated)
-                    cancelServiceActiveNotification()
+                    NotificationsManager.cancelServiceActiveNotification(this)
                     alarmHelper.cancelAlarm()
                 }
             }
@@ -161,6 +155,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     private fun setUpStatsScreen() {
         skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
         unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
+        lastBreakStatTextView.text = statsHelper.calculateTimeDifference()
     }
 
     private fun requestWriteSettingsPermission() {
@@ -242,44 +237,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         notificRsiWindowCheckBox.isChecked = sp.getBoolean(PREF_RSI_BREAK_WINDOW, false)
     }
 
-    private fun showServiceActiveNotification() {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        val title = getString(R.string.service_is_active)
-
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(this, 0,
-                intent, 0)
-
-        val builder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
-                .setWhen(System.currentTimeMillis())
-                .setContentIntent(contentIntent)
-                .setContentTitle(title)
-                .setSmallIcon(R.drawable.ic_eye_black)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setColor(Color.MAGENTA)
-                .setOngoing(true)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nm.setNotificationChannel(SERVICE_CHANNEL_ID,
-                    getString(R.string.service_notification_channel_name),
-                    NotificationManager.IMPORTANCE_MIN)
-            builder.setChannelId(SERVICE_CHANNEL_ID)
-        }
-
-        val notification = builder.build()
-        nm.notify(R.string.service_is_active, notification)
-    }
-
-    private fun cancelServiceActiveNotification() {
-        val nm = getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
-        nm.cancel(R.string.service_is_active)
-    }
-
     companion object {
         const val TAG = "MainActivity"
         const val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
         const val MY_PERMISSIONS_REQUEST_DRAW_OVERLAY = 1
-        const val SERVICE_CHANNEL_ID = "blink_break_channel_id"
     }
 }

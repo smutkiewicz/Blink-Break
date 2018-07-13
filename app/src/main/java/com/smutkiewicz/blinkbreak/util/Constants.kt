@@ -13,6 +13,7 @@ const val PREF_NOTIFICATIONS = "notifications"
 const val PREF_LOWER_BRIGHTNESS = "lower_brightness"
 const val PREF_USER_BRIGHTNESS = "user_brightness"
 const val PREF_RSI_BREAK_WINDOW = "rsi_break_window"
+const val PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED = "notify_when_device_is_locked"
 
 @JvmField val MESSENGER_INTENT_KEY = "${BuildConfig.APPLICATION_ID}.MESSENGER_INTENT_KEY"
 @JvmField val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"
