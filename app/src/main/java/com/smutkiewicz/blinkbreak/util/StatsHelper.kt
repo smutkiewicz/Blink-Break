@@ -2,6 +2,7 @@ package com.smutkiewicz.blinkbreak.util
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -58,7 +59,7 @@ class StatsHelper(internal var context: Context) {
             val format = SimpleDateFormat("HH:mm:ss")
             val date1 = format.parse(lastBreak)
             val date2 = format.parse(currentTime)
-            val difference = date2.time - date1.time
+            val difference = abs(date2.time - date1.time)
 
             var seconds = (difference / 1000)
             val minutes = (seconds / 60)

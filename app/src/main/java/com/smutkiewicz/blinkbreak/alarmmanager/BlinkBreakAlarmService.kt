@@ -18,6 +18,7 @@ import java.util.*
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
     private var rsiWindowView: RsiWindowView? = null
+    private var statsHelper: StatsHelper? = null
     private var userBrightness: Int = 0
     private var sp: SharedPreferences? = null
     private var duration: Long = 0
@@ -25,6 +26,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     // the Service onStart callback
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         sp = PreferenceManager.getDefaultSharedPreferences(this)
+        statsHelper = StatsHelper(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(FOREGROUND_ID, NotificationsManager.getServiceActiveNotification(this))
@@ -69,7 +71,10 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                 }
 
                 when { notifications -> cancelSingleTaskActiveNotification() }
-                when { drawRsiWindow -> removeRsiWindow() }
+                when {
+                    drawRsiWindow -> removeRsiWindow()
+                    else -> updateStats()
+                }
             }
         }, duration)
     }
@@ -154,6 +159,11 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
     private fun cancelSingleTaskActiveNotification() {
         NotificationsManager.cancelSingleTaskActiveNotification(this)
+    }
+
+    private fun updateStats() {
+        statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
+        statsHelper?.lastBreak = StatsHelper.getTimeStamp()
     }
 
     companion object {

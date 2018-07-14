@@ -40,7 +40,7 @@ object NotificationsManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             nm.setNotificationChannel(SERVICE_CHANNEL_ID,
                     context.getString(R.string.service_notification_channel_name),
-                    NotificationManager.IMPORTANCE_MIN)
+                    NotificationManager.IMPORTANCE_LOW)
             builder.setChannelId(SERVICE_CHANNEL_ID)
         }
 
@@ -69,7 +69,7 @@ object NotificationsManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             nm.setNotificationChannel(SERVICE_CHANNEL_ID,
                     context.getString(R.string.service_notification_channel_name),
-                    NotificationManager.IMPORTANCE_MIN)
+                    NotificationManager.IMPORTANCE_LOW)
             builder.setChannelId(SERVICE_CHANNEL_ID)
         }
 

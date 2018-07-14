@@ -34,10 +34,10 @@
 
     <!--settings-->
     <string name="settings_info_title">About application</string>
-    <string name="settings_info_summary">Version 0.5 alpha</string>
+    <string name="settings_info_summary">Version 0.8 beta</string>
     <string name="settings_info_author">Blink Break\n\n
                                 All rights reserved\n
-                                Version 0.5\n
+                                Version 0.8 beta\n
                                 Codename: TM01\n
                                 Author: Michał Smutkiewicz\n
                                 &#169; Aesthetic Apps Studios 2018

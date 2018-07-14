@@ -211,6 +211,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         if (alarmHelper.checkIfThereArePendingTasks()) {
             serviceToggleButton.isChecked = true
             activatedTextView.text = getString(R.string.service_activated)
+            NotificationsManager.showServiceActiveNotification(this)
         } else {
             serviceToggleButton.isChecked = false
             activatedTextView.text = getString(R.string.service_deactivated)
