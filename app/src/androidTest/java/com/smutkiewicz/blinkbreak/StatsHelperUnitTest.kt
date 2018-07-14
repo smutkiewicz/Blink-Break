@@ -2,15 +2,15 @@ package com.smutkiewicz.blinkbreak
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import android.util.Log
 import com.smutkiewicz.blinkbreak.util.StatsHelper
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumented test, which will execute on an Android device.
+ * Instrumented test for utility class StatsHelper used by app for calculating statistics data.
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
@@ -26,10 +26,42 @@ class StatsHelperUnitTest {
 
     @Test
     fun dateDifference_isPositive() {
-        statsHelper?.lastBreak = "23:59:59"
-        val differenceString = statsHelper?.calculateTimeDifference()
-        Log.d("TAG", differenceString)
-        assert(differenceString!!.contains("-"))
+        val differenceString =
+                statsHelper?.calculateTimeDifferenceString("01/01/2018 23:59:59",
+                        "01/02/2018 00:00:01") // lastBreak, currentDate
+        assertTrue(!differenceString!!.contains("-"))
+    }
+
+    @Test
+    fun dateDifferenceSeconds_isCorrect() {
+        val differenceString =
+                statsHelper?.calculateTimeDifferenceString("01/01/2018 23:59:59",
+                        "01/02/2018 00:00:01") // lastBreak, currentDate
+        assertTrue(differenceString!!.contentEquals( "2 second(s) ago."))
+    }
+
+    @Test
+    fun dateDifferenceMinutes_isCorrect() {
+        val differenceString =
+                statsHelper?.calculateTimeDifferenceString("01/01/2018 23:58:59",
+                        "01/02/2018 00:00:01") // lastBreak, currentDate
+        assertTrue(differenceString!!.contentEquals( "1 min(s) ago."))
+    }
+
+    @Test
+    fun dateDifferenceHours_isCorrect() {
+        val differenceString =
+                statsHelper?.calculateTimeDifferenceString("01/01/2018 22:58:59",
+                        "01/02/2018 00:00:01") // lastBreak, currentDate
+        assertTrue(differenceString!!.contentEquals( "1 hour(s) ago."))
+    }
+
+    @Test
+    fun dateDifferenceDays_isCorrect() {
+        val differenceString =
+                statsHelper?.calculateTimeDifferenceString("01/01/2018 22:58:59",
+                        "01/03/2018 00:00:01") // lastBreak, currentDate
+        assertTrue(differenceString!! == "1 day(s) ago.")
     }
 
     @Test

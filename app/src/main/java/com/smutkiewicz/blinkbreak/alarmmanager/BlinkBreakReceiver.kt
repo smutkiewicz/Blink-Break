@@ -20,6 +20,6 @@ class BlinkBreakReceiver : BroadcastReceiver() {
 
     companion object {
         private val TAG = "AlarmReceiver"
-        val REQUEST_CODE = 1
+        const val REQUEST_CODE = 1
     }
 }

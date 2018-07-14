@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        getSupportActionBar()?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         layout = findViewById(R.id.layout)
         alarmHelper = AlarmHelper(applicationContext)
@@ -40,6 +40,11 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         setUpToggleButton()
         setUpSeekBars()
         setUpCheckBoxes()
+        setUpStatsScreen()
+    }
+
+    public override fun onResume() {
+        super.onResume()
         setUpStatsScreen()
     }
 
@@ -84,9 +89,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar?) {
-        when (seekBar) {
-            breakEverySeekBar -> reschedule()
-        }
+        when (seekBar) { breakEverySeekBar -> reschedule() }
     }
 
     override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -118,17 +121,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
      * Checkboxes are part of UI responsible for enabling/disabling breaks' settings.
      */
     private fun setUpCheckBoxes() {
-        breakCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            // save user preference
-            sp.edit().putBoolean(PREF_BREAK_ENABLED, isChecked).apply()
-
-            // block/unlock the layout
-            breakLayout.setIsEnabledForChildren(isChecked)
-
-            // settings changed, reschedule if needed
-            reschedule()
-        }
-
         notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
         }
@@ -155,7 +147,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     private fun setUpStatsScreen() {
         skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
         unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
-        lastBreakStatTextView.text = statsHelper.calculateTimeDifference()
+        lastBreakStatTextView.text = statsHelper.getTimeDifferenceString()
     }
 
     private fun requestWriteSettingsPermission() {
@@ -173,16 +165,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
-        val taskToSchedule: Task
+        val taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgressFrequency(this),
+                breakDuration = breakDurationSeekBar.getProgress(this),
+                areNotificationsEnabled = notificCheckBox.isChecked,
+                isLowerBrightness = notificBrightnessCheckBox.isChecked)
 
-        if (breakCheckBox.isChecked) {
-            taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgressFrequency(this),
-                    breakDuration = breakDurationSeekBar.getProgress(this),
-                    areNotificationsEnabled = notificCheckBox.isChecked,
-                    isLowerBrightness = notificBrightnessCheckBox.isChecked)
-
-            alarmHelper.scheduleAlarm(taskToSchedule)
-        }
+        alarmHelper.scheduleAlarm(taskToSchedule)
     }
 
     private fun reschedule() {
@@ -215,12 +203,8 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         } else {
             serviceToggleButton.isChecked = false
             activatedTextView.text = getString(R.string.service_deactivated)
+            NotificationsManager.cancelServiceActiveNotification(this)
         }
-
-        // Checkboxes
-        val isTinyBreakEnabled = sp.getBoolean(PREF_BREAK_ENABLED, false)
-        breakCheckBox.isChecked = isTinyBreakEnabled
-        breakLayout.setIsEnabledForChildren(isTinyBreakEnabled)
 
         // Break length/duration SeekBars
         breakEverySeekBar.progress = sp.getInt(PREF_BREAK_EVERY_PROGRESS, 0)

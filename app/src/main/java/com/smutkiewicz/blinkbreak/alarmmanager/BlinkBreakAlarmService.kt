@@ -110,10 +110,9 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         val isScreenOn = powerManager.isScreenOn
 
         when {
-            !myKM.inKeyguardRestrictedInputMode() -> {//it is not locked
+            !myKM.inKeyguardRestrictedInputMode() -> {// device is not locked
                 when {
                     isScreenOn -> {
-                        Log.d(TAG, "Device is not locked")
                         rsiWindowView = RsiWindowView(this, duration)
                     } else -> {
                         Log.d(TAG, "Device screen is off")

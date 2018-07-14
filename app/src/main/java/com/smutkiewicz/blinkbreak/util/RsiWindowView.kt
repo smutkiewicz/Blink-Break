@@ -26,12 +26,23 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
     private var frameLayout: FrameLayout? = FrameLayout(context)
     private var windowManager: WindowManager? = null
     private var statsHelper: StatsHelper? = StatsHelper(myContext)
-    internal var skipped: Boolean = false
+    private var skipped: Boolean = false
 
     init {
         addToWindowManager()
         initCountdownTimer(breakDuration)
         initCountdownProgressBar(breakDuration)
+    }
+
+    /**
+     * Removes the view from window manager.
+     */
+    fun destroy() {
+        val isAttachedToWindow: Boolean? = frameLayout?.isAttachedToWindow
+        if (isAttachedToWindow != null && isAttachedToWindow) {
+            windowManager!!.removeView(frameLayout)
+            frameLayout = null
+        }
     }
 
     private fun addToWindowManager() {
@@ -106,17 +117,6 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
         if (!skipped) {
             statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
             statsHelper?.lastBreak = StatsHelper.getTimeStamp()
-        }
-    }
-
-    /**
-     * Removes the view from window manager.
-     */
-    fun destroy() {
-        val isAttachedToWindow: Boolean? = frameLayout?.isAttachedToWindow
-        if (isAttachedToWindow != null && isAttachedToWindow) {
-            windowManager!!.removeView(frameLayout)
-            frameLayout = null
         }
     }
 

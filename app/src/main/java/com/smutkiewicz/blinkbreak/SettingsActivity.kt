@@ -31,7 +31,7 @@ class SettingsActivity : AppCompatActivity() {
 
     class SettingsFragment : PreferenceFragment() {
 
-        lateinit var sp: SharedPreferences
+        private lateinit var sp: SharedPreferences
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
