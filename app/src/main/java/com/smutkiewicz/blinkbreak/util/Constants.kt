@@ -3,8 +3,6 @@
 
 package com.smutkiewicz.blinkbreak.util
 
-import com.smutkiewicz.blinkbreak.BuildConfig
-
 const val PREF_IS_FIRST_TIME_LAUNCH = "is_first_time_launch"
 const val PREF_BREAK_EVERY_PROGRESS = "tiny_break_every"
 const val PREF_BREAK_DURATION_PROGRESS = "tiny_break_duration"
@@ -16,4 +14,4 @@ const val PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED = "notify_when_device_is_locked"
 const val PREF_UNSKIPPED_IN_A_ROW = "unskipped_in_a_row"
 const val PREF_POSTPONE_DURATION = "postpone_duration"
 
-const val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"
+//const val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"

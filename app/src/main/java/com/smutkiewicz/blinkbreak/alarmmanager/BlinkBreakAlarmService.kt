@@ -23,7 +23,6 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     private var sp: SharedPreferences? = null
     private var duration: Long = 0
 
-    // the Service onStart callback
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         sp = PreferenceManager.getDefaultSharedPreferences(this)
         statsHelper = StatsHelper(this)
@@ -109,6 +108,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         val isScreenOn = powerManager.isScreenOn
 
+        // logic for preventing unnecessary drawing when device has locked or has screen off
         when {
             !myKM.inKeyguardRestrictedInputMode() -> {// device is not locked
                 when {
@@ -132,14 +132,14 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     private fun showSingleTaskActiveNotification() {
         val myKM = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+
         val isScreenOn = powerManager.isScreenOn
         val lockedDeviceNotificationsEnabled =
                 sp!!.getBoolean(PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED, false)
 
-        if (lockedDeviceNotificationsEnabled) {
-            NotificationsManager.showSingleTaskActiveNotification(this)
-        } else {
-            when {
+        when {
+            lockedDeviceNotificationsEnabled -> NotificationsManager.showSingleTaskActiveNotification(this)
+            else -> when {
                 !myKM.inKeyguardRestrictedInputMode() -> {
                     when {
                     // Device is not locked
