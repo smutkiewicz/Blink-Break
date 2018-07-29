@@ -21,15 +21,14 @@ class AlarmHelper(private val context: Context) {
     private var sp: SharedPreferences? = null
 
     fun scheduleAlarm() {
-        // Construct an intent that will execute the AlarmReceiver
+        // Constructs an intent that will execute the AlarmReceiver
         val intent = Intent(context, BlinkBreakReceiver::class.java)
         val task = getAlarmTaskSettings()
 
-        // Extras, periodic fire time of the break and its duration
         sp = PreferenceManager.getDefaultSharedPreferences(context)
         sp!!.edit().putLong(BREAK_DURATION_KEY, task!!.breakDuration).apply()
 
-        // Create a PendingIntent to be triggered when the alarm goes off
+        // Creates a PendingIntent to be triggered when the alarm goes off
         val pIntent = getBroadcast(context, BlinkBreakReceiver.REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
@@ -73,6 +72,7 @@ class AlarmHelper(private val context: Context) {
         val intent = Intent(context, BlinkBreakReceiver::class.java)
         val pIntent = getBroadcast(context, BlinkBreakReceiver.REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
         alarm.cancel(pIntent)
         pIntent.cancel()
 
@@ -96,6 +96,8 @@ class AlarmHelper(private val context: Context) {
         return Task(breakEvery, breakDuration)
     }
 
+    // Values of time are stored in sp in steps of SeekBar,
+    // so we need to map them to their real values.
     private fun getProgressValue(resId: Int, progress: Int): Long {
         val intArray = context.resources.getIntArray(resId)
         return intArray[progress].toLong()
