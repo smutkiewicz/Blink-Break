@@ -25,7 +25,7 @@
     <string name="show_rsi_break_window">Show RSI break window on top of your apps</string>
     <string name="show_rsi_break_window_info">RSI window covers your device\'s screen,
         countdowns to the end of the break and helps you remember about them.
-        You can skip the window if you want or if it\'s not the right moment for a rest.</string>
+        You can skip or postpone the window if you want or if it\'s not the right moment for a rest.</string>
     <string name="skip_the_break">Skip the break</string>
 
     <!--RSI window-->
