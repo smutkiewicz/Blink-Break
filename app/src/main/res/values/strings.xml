@@ -27,18 +27,23 @@
         countdowns to the end of the break and helps you remember about them.
         You can skip the window if you want or if it\'s not the right moment for a rest.</string>
     <string name="skip_the_break">Skip the break</string>
+
+    <!--RSI window-->
     <string name="window_message">Have a break.
         Protect yourself from RSI consequences - blink, look around.</string>
+    <string name="window_time_for_a_break">Time for a break!</string>
+    <string name="window_countdown">00:00</string>
+    <string name="window_postpone_the_break">Postpone the break</string>
     <string name="countdown_finished">Finished!</string>
-    <string name="title_activity_settings">Settings</string>
 
     <!--settings-->
+    <string name="title_activity_settings">Settings</string>
     <string name="settings_info_title">About application</string>
-    <string name="settings_info_summary">Version 0.8 beta</string>
+    <string name="settings_info_summary">Version 0.9 beta</string>
     <string name="settings_info_author">Blink Break\n\n
                                 All rights reserved\n
-                                Version 0.8 beta\n
-                                Codename: TM01\n
+                                Version 0.9 beta\n
+                                Codename: TM11\n
                                 Author: Michał Smutkiewicz\n
                                 &#169; Aesthetic Apps Studios 2018
     </string>
@@ -48,6 +53,7 @@
     <string name="settings_reset_stats_title">Reset statistics</string>
     <string name="settings_reset_stats_summary">Reset all your app\'s statistics such as amount of skipped/unskipped breaks, their durations etc.</string>
     <string name="settings_stats_message">All your statistics data will be lost. Continue?</string>
+    <string name="settings_postpone_break_duration">Postpone break duration</string>
 
     <!--Welcome Screen-->
     <string name="next">NEXT</string>
@@ -79,5 +85,11 @@
     <string name="stats_skipped_breaks">Skipped breaks:</string>
     <string name="stats_maximal_break_duration">Maximal break duration:</string>
     <string name="stats_duration_of_unskipped_breaks">Duration of unskipped breaks:</string>
+    <string name="stats_unskipped_breaks_in_a_row">%1$s %2$d unskipped break(s) in a row%3$s</string>
+    <string name="stats_only">Only</string>
+    <string name="stats_nice">Nice, that\'s</string>
+    <string name="stats_wow">Wow, that\'s</string>
+
+    <string name="turn_off_service">Turn off the service</string>
 
 </resources>

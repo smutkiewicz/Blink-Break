@@ -13,6 +13,7 @@ import com.smutkiewicz.blinkbreak.MainActivity
 import com.smutkiewicz.blinkbreak.R
 import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
 
+
 object NotificationsManager {
 
     private const val TAG = "NotificationsManager"
@@ -94,7 +95,6 @@ object NotificationsManager {
                 .setSmallIcon(R.drawable.ic_have_a_break_24dp)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setColor(Color.MAGENTA)
-                .setOngoing(true)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             nm.setNotificationChannel(SERVICE_SINGLE_TASK_CHANNEL_ID,

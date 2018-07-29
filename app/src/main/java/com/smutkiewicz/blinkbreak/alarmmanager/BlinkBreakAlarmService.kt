@@ -134,7 +134,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         val isScreenOn = powerManager.isScreenOn
         val lockedDeviceNotificationsEnabled =
-                sp!!.getBoolean(PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED, true)
+                sp!!.getBoolean(PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED, false)
 
         if (lockedDeviceNotificationsEnabled) {
             NotificationsManager.showSingleTaskActiveNotification(this)
@@ -162,6 +162,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
 
     private fun updateStats() {
         statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
+        statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_IN_A_ROW)
         statsHelper?.lastBreak = StatsHelper.getTimeStamp()
     }
 

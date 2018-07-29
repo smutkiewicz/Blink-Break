@@ -14,7 +14,7 @@
         <ImageView
             android:layout_width="@dimen/slide_4_width_height"
             android:layout_height="@dimen/slide_4_width_height"
-            android:src="@drawable/time_for_a_break_screen" />
+            android:src="@drawable/time_for_a_break_cut" />
 
         <TextView
             android:layout_width="wrap_content"

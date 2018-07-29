@@ -2,15 +2,15 @@ package com.smutkiewicz.blinkbreak
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.preference.ListPreference
 import android.preference.Preference
 import android.preference.PreferenceFragment
 import android.preference.PreferenceManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import com.smutkiewicz.blinkbreak.util.PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED
-import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_LAST_BREAK
-import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_SKIPPED_BREAKS
-import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_UNSKIPPED_BREAKS
+import com.smutkiewicz.blinkbreak.util.PREF_POSTPONE_DURATION
+import com.smutkiewicz.blinkbreak.util.StatsHelper
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -39,8 +39,17 @@ class SettingsActivity : AppCompatActivity() {
             sp = PreferenceManager.getDefaultSharedPreferences(activity)
 
             setNotifyWhenLockedPreferenceListener()
+            setPostponeDurationPreferenceListener()
             setStatsPreferenceListener()
             setInfoPreferenceListener()
+        }
+
+        private fun setPostponeDurationPreferenceListener() {
+            val postponeDuration = preferenceManager.findPreference(POSTPONE_DURATION) as ListPreference
+            postponeDuration.setOnPreferenceChangeListener({ _, newValue ->
+                sp.edit().putString(PREF_POSTPONE_DURATION, newValue as String?).apply()
+                true
+            })
         }
 
         private fun setNotifyWhenLockedPreferenceListener() {
@@ -62,9 +71,8 @@ class SettingsActivity : AppCompatActivity() {
                         .setIcon(R.drawable.ic_alert_24dp)
                         .setPositiveButton(android.R.string.ok,
                                 { dialog, _ ->
-                                    sp.edit().putString(STAT_LAST_BREAK, "Never").apply()
-                                    sp.edit().putInt(STAT_UNSKIPPED_BREAKS, 0).apply()
-                                    sp.edit().putInt(STAT_SKIPPED_BREAKS, 0).apply()
+                                    val statHelper = StatsHelper(activity)
+                                    statHelper.resetValues()
                                     dialog.dismiss()
                                 })
                         .setNegativeButton(android.R.string.no, { dialog, _ ->
@@ -101,5 +109,6 @@ class SettingsActivity : AppCompatActivity() {
         private const val INFO = "pref_info"
         private const val STATS = "pref_reset_stats"
         private const val NOTIFY_WHEN_LOCKED = "pref_notifications_device_locked"
+        private const val POSTPONE_DURATION = "pref_postpone_duration"
     }
 }

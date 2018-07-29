@@ -20,14 +20,16 @@
         Quite often (2 min)
         Optimally (5 min)
         Very rarely (15 min)
+        Occasionally (30 min)
     -->
 
     <string-array name="break_frequency_array">
-        <item>Very Often</item>
-        <item>Often</item>
-        <item>Quite often</item>
-        <item>Optimally</item>
-        <item>Very rarely</item>
+        <item>Very Often (10 sec)</item>
+        <item>Often (30 sec)</item>
+        <item>Quite often (2 min)</item>
+        <item>Optimally (5 min)</item>
+        <item>Very rarely (15 min)</item>
+        <item>Occasionally (30 min)</item>
     </string-array>
 
     <integer-array name="break_duration_val_array">
@@ -50,6 +52,25 @@
         <item>120000</item>
         <item>300000</item>
         <item>900000</item>
+        <item>1800000</item>
     </integer-array>
+
+    <string-array name="postpone_array">
+        <item>10 secs (test)</item>
+        <item>5 mins</item>
+        <item>10 mins</item>
+        <item>20 mins</item>
+        <item>40 mins</item>
+        <item>1 hour</item>
+    </string-array>
+
+    <string-array name="postpone_val_array">
+        <item>10000</item>
+        <item>300000</item>
+        <item>600000</item>
+        <item>1200000</item>
+        <item>2400000</item>
+        <item>3600000</item>
+    </string-array>
 
 </resources>

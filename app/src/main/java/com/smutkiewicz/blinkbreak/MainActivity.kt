@@ -1,5 +1,6 @@
 package com.smutkiewicz.blinkbreak
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -13,7 +14,6 @@ import android.view.View
 import android.widget.SeekBar
 import com.smutkiewicz.blinkbreak.alarmmanager.AlarmHelper
 import com.smutkiewicz.blinkbreak.extensions.*
-import com.smutkiewicz.blinkbreak.model.Task
 import com.smutkiewicz.blinkbreak.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -144,10 +144,43 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
     }
 
+    @SuppressLint("StringFormatMatches")
     private fun setUpStatsScreen() {
         skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
         unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
         lastBreakStatTextView.text = statsHelper.getTimeDifferenceString()
+
+        val unskippedInARow = statsHelper.unskippedInARow
+        val textString: String
+        val colorResId: Int
+
+        when {
+            unskippedInARow > resources.getInteger(R.integer.unskipped_high) -> {
+                textString = getString(R.string.stats_wow)
+                colorResId = R.color.unskipped_high
+            }
+            unskippedInARow > resources.getInteger(R.integer.unskipped_med) -> {
+                textString = getString(R.string.stats_nice)
+                colorResId = R.color.unskipped_med
+            }
+            unskippedInARow == 0 -> {
+                textString = ""
+                colorResId = R.color.unskipped_low
+            }
+            else -> {
+                textString = getString(R.string.stats_only)
+                colorResId = R.color.unskipped_low
+            }
+        }
+
+        val mark = when {
+            unskippedInARow > resources.getInteger(R.integer.unskipped_med) -> "!"
+            else -> "."
+        }
+
+        unskippedSeriesTextView.text =
+                getString(R.string.stats_unskipped_breaks_in_a_row, textString, unskippedInARow, mark)
+        unskippedSeriesTextView.setTextColor(resources.getColor(colorResId))
     }
 
     private fun requestWriteSettingsPermission() {
@@ -165,12 +198,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     private fun schedule() {
-        val taskToSchedule = Task(breakEvery = breakEverySeekBar.getProgressFrequency(this),
-                breakDuration = breakDurationSeekBar.getProgress(this),
-                areNotificationsEnabled = notificCheckBox.isChecked,
-                isLowerBrightness = notificBrightnessCheckBox.isChecked)
-
-        alarmHelper.scheduleAlarm(taskToSchedule)
+        alarmHelper.scheduleAlarm()
     }
 
     private fun reschedule() {

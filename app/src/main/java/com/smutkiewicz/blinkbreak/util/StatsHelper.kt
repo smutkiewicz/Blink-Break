@@ -24,6 +24,13 @@ class StatsHelper(internal var context: Context) {
             editor.commit()
         }
 
+    var unskippedInARow: Int
+        get() = pref.getInt(STAT_UNSKIPPED_IN_A_ROW, 0)
+        set(value) {
+            editor.putInt(STAT_UNSKIPPED_IN_A_ROW, value)
+            editor.commit()
+        }
+
     var skippedBreaks: Int
         get() = pref.getInt(STAT_SKIPPED_BREAKS, 0)
         set(value) {
@@ -48,9 +55,20 @@ class StatsHelper(internal var context: Context) {
                 val newValue = skippedBreaks + 1
                 skippedBreaks = newValue
             }
+            STAT_UNSKIPPED_IN_A_ROW -> {
+                val newValue = unskippedInARow + 1
+                unskippedInARow = newValue
+            }
             else -> { //do nothing
             }
         }
+    }
+
+    fun resetValues() {
+        editor.putString(STAT_LAST_BREAK, "Never").apply()
+        editor.putInt(STAT_UNSKIPPED_BREAKS, 0).apply()
+        editor.putInt(STAT_SKIPPED_BREAKS, 0).apply()
+        editor.putInt(STAT_UNSKIPPED_IN_A_ROW, 0).apply()
     }
 
     fun getTimeDifferenceString(): String {
@@ -88,8 +106,7 @@ class StatsHelper(internal var context: Context) {
         val STAT_UNSKIPPED_BREAKS = "stat_unskipped_breaks"
         val STAT_SKIPPED_BREAKS = "stat_skipped_breaks"
         val STAT_LAST_BREAK = "stat_last_break"
-        val STAT_MAXIMAL_BREAK_DURATION = "stat_max_break_duration"
-        val STAT_UNSKIPPED_BREAKS_DURATION = "stat_unskipped_break_duration"
+        val STAT_UNSKIPPED_IN_A_ROW = "stat_unskipped_in_a_row"
         val STAT_NEVER = "Never"
         val DATE_FORMAT = "MM/dd/yyyy HH:mm:ss"
 

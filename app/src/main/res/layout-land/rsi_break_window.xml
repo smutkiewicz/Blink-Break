@@ -10,7 +10,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
@@ -55,9 +55,9 @@
             android:layout_marginRight="8dp" />
 
         <View
-            android:id="@+id/divider2"
+            android:id="@+id/divider"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/window_div"
+            android:layout_height="@dimen/window_div_land"
             android:background="?android:attr/listDivider" />
 
         <TextView
@@ -88,7 +88,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_below="@+id/rsiWindowImageView"
-            android:layout_margin="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
             android:text="@string/skip_the_break"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

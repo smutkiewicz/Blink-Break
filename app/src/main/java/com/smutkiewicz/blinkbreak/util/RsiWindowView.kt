@@ -13,6 +13,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.smutkiewicz.blinkbreak.R
+import com.smutkiewicz.blinkbreak.alarmmanager.AlarmHelper
 import com.smutkiewicz.blinkbreak.util.StatsHelper.Companion.STAT_SKIPPED_BREAKS
 
 
@@ -27,6 +28,7 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
     private var windowManager: WindowManager? = null
     private var statsHelper: StatsHelper? = StatsHelper(myContext)
     private var skipped: Boolean = false
+    private var postponed: Boolean = false
 
     init {
         addToWindowManager()
@@ -65,16 +67,29 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
         windowManager!!.addView(frameLayout, params)
 
         val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-
-        // Here is the place where you can inject whatever layout you want.
         layoutInflater.inflate(R.layout.rsi_break_window, frameLayout)
 
+        initSkipButton()
+        initPostponeButton()
+    }
+
+    private fun initSkipButton() {
         val rsiWindowButton = frameLayout?.findViewById<Button>(R.id.rsiWindowButton)
         rsiWindowButton?.setOnClickListener{
             skipped = true
+            statsHelper?.unskippedInARow = 0
             statsHelper?.increaseValue(STAT_SKIPPED_BREAKS)
             windowManager!!.removeView(frameLayout)
         }
+    }
+
+    private fun initPostponeButton() {
+        val postponeButton = frameLayout?.findViewById<Button>(R.id.postponeButton)
+        postponeButton?.setOnClickListener({
+            postponed = true
+            AlarmHelper(context).schedulePostponedAlarm()
+            windowManager!!.removeView(frameLayout)
+        })
     }
 
     private fun initCountdownTimer(millisInFuture: Long) {
@@ -92,7 +107,6 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
 
             override fun onFinish() {
                 updateStats()
-                textView?.text = context.getString(R.string.countdown_finished)
                 destroy()
             }
         }.start()
@@ -114,13 +128,16 @@ class RsiWindowView(myContext: Context, breakDuration: Long) : View(myContext) {
     }
 
     private fun updateStats() {
-        if (!skipped) {
-            statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
-            statsHelper?.lastBreak = StatsHelper.getTimeStamp()
-        }
+        if (!postponed) {
+            if (!skipped) {
+                statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_BREAKS)
+                statsHelper?.increaseValue(StatsHelper.STAT_UNSKIPPED_IN_A_ROW)
+                statsHelper?.lastBreak = StatsHelper.getTimeStamp()
+            }
+        } // don't update the stats if task is postponed
     }
 
-    companion object {
+    private companion object {
         private const val TAG = "RsiWindowView"
     }
 }

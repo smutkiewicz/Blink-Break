@@ -11,7 +11,7 @@
     <android.support.constraint.ConstraintLayout
         android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
         <android.support.v7.widget.CardView
             android:id="@+id/service_on_off_card_view"
@@ -127,7 +127,7 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
-                    android:max="4"
+                    android:max="5"
                     android:progress="0"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -307,7 +307,7 @@
         <android.support.v7.widget.CardView
             android:id="@+id/statsCardView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="149dp"
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
@@ -321,6 +321,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <TextView
+                    android:id="@+id/unskippedSeriesTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/stats_unskipped_breaks_in_a_row"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    android:textColor="@color/unskipped_low"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/statsTextView" />
+
                 <ImageView
                     android:id="@+id/statsImageView"
                     android:layout_width="wrap_content"
@@ -328,7 +340,7 @@
                     android:layout_marginBottom="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
-                    app:layout_constraintBottom_toTopOf="@+id/textView3"
+                    app:layout_constraintBottom_toTopOf="@+id/unskippedSeriesTextView"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_stats_black_24dp" />
@@ -337,35 +349,32 @@
                     android:id="@+id/statsTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/statistics"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/statsImageView"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/stats_last_break"
-                    android:textAppearance="@android:style/TextAppearance.Material.Small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/statsTextView" />
+                    app:layout_constraintTop_toBottomOf="@+id/unskippedSeriesTextView" />
 
                 <TextView
                     android:id="@+id/textView4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/stats_unskipped_breaks"
-                    android:textAppearance="@android:style/TextAppearance.Material.Small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
@@ -374,13 +383,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/stats_skipped_breaks"
-                    android:textAppearance="@android:style/TextAppearance.Material.Small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView4" />
+                    app:layout_constraintTop_toBottomOf="@+id/textView4"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <TextView
                     android:id="@+id/textView6"
@@ -389,7 +399,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/stats_maximal_break_duration"
-                    android:textAppearance="@android:style/TextAppearance.Material.Small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView5" />
@@ -402,7 +412,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:text="@string/stats_duration_of_unskipped_breaks"
-                    android:textAppearance="@android:style/TextAppearance.Material.Small"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -416,7 +426,7 @@
                     android:layout_marginTop="8dp"
                     android:text="5 minute(s) ago"
                     app:layout_constraintStart_toEndOf="@+id/textView3"
-                    app:layout_constraintTop_toBottomOf="@+id/statsTextView" />
+                    app:layout_constraintTop_toBottomOf="@+id/unskippedSeriesTextView" />
 
                 <TextView
                     android:id="@+id/unskippedBreaksTextView"
@@ -463,6 +473,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/textView8"
                     app:layout_constraintTop_toBottomOf="@+id/maxBreakDurationTextView" />
+
             </android.support.constraint.ConstraintLayout>
         </android.support.v7.widget.CardView>
 

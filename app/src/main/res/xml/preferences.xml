@@ -5,8 +5,17 @@
     <CheckBoxPreference
         android:key="pref_notifications_device_locked"
         android:title="@string/settings_notify_when_locked_title"
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:summary="@string/settings_notify_when_locked_summary"
+        android:persistent="true"/>
+
+    <ListPreference
+        android:key="pref_postpone_duration"
+        android:title="@string/settings_postpone_break_duration"
+        android:summary="%s"
+        android:entries="@array/postpone_array"
+        android:entryValues="@array/postpone_val_array"
+        android:defaultValue="1200000"
         android:persistent="true"/>
 
     <Preference

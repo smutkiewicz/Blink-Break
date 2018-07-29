@@ -65,7 +65,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         // Checking for first time launch - before calling setContentView()
         sp = PreferenceManager.getDefaultSharedPreferences(this)
-        if (sp.getBoolean(PREF_IS_FIRST_TIME_LAUNCH, true)) { // TODO inversed if for tests
+        if (!sp.getBoolean(PREF_IS_FIRST_TIME_LAUNCH, true)) {
             launchHomeScreen()
             finish()
         }
