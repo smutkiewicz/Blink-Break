@@ -9,10 +9,10 @@ import android.widget.CheckBox
  */
 fun ConstraintLayout.setIsEnabledForChildren(isEnabled: Boolean) {
     (0 until childCount)
-            .map { getChildAt(it) }
-            .forEach {
-                if (it !is CheckBox) {
-                    it.isEnabled = isEnabled
-                }
+        .map { getChildAt(it) }
+        .forEach {
+            if (it !is CheckBox) {
+                it.isEnabled = isEnabled
             }
+        }
 }

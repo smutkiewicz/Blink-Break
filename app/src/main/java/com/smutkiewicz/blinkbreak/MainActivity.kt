@@ -13,8 +13,20 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.SeekBar
 import com.smutkiewicz.blinkbreak.alarmmanager.AlarmHelper
-import com.smutkiewicz.blinkbreak.extensions.*
-import com.smutkiewicz.blinkbreak.util.*
+import com.smutkiewicz.blinkbreak.extensions.checkForDrawOverlaysPermissions
+import com.smutkiewicz.blinkbreak.extensions.checkForWritePermissions
+import com.smutkiewicz.blinkbreak.extensions.createDrawOverlayPermissionsIntent
+import com.smutkiewicz.blinkbreak.extensions.createWritePermissionsIntent
+import com.smutkiewicz.blinkbreak.extensions.getProgressFrequencyLabel
+import com.smutkiewicz.blinkbreak.extensions.getProgressLabel
+import com.smutkiewicz.blinkbreak.extensions.showSnackbar
+import com.smutkiewicz.blinkbreak.util.NotificationsManager
+import com.smutkiewicz.blinkbreak.util.PREF_BREAK_DURATION_PROGRESS
+import com.smutkiewicz.blinkbreak.util.PREF_BREAK_EVERY_PROGRESS
+import com.smutkiewicz.blinkbreak.util.PREF_LOWER_BRIGHTNESS
+import com.smutkiewicz.blinkbreak.util.PREF_NOTIFICATIONS
+import com.smutkiewicz.blinkbreak.util.PREF_RSI_BREAK_WINDOW
+import com.smutkiewicz.blinkbreak.util.StatsHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
@@ -27,25 +39,26 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         layout = findViewById(R.id.layout)
-        alarmHelper = AlarmHelper(applicationContext)
         sp = PreferenceManager.getDefaultSharedPreferences(this)
+        alarmHelper = AlarmHelper(applicationContext)
         statsHelper = StatsHelper(this)
 
-        setUserSettings()
-        setUpToggleButton()
-        setUpSeekBars()
-        setUpCheckBoxes()
-        setUpStatsScreen()
+        readUserSettings()
+        createToggleButton()
+        createSeekBars()
+        createCheckBoxes()
+        createStatsScreen()
     }
 
     public override fun onResume() {
         super.onResume()
-        setUpStatsScreen()
+        createStatsScreen()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -77,7 +90,6 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
                 breakDurationValTextView.text =
                         breakDurationSeekBar.getProgressLabel(this)
             }
-
             breakEverySeekBar -> {
                 prefName = PREF_BREAK_EVERY_PROGRESS
                 breakEveryValTextView.text =
@@ -94,24 +106,21 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     override fun onStartTrackingTouch(p0: SeekBar?) {}
 
-    private fun setUpToggleButton() {
+    private fun createToggleButton() {
         serviceToggleButton.setOnCheckedChangeListener{ _, isChecked ->
-            when {
-                isChecked -> {
-                    activatedTextView.text = getString(R.string.service_activated)
-                    NotificationsManager.showServiceActiveNotification(this)
-                    schedule()
-                }
-                else -> {
-                    activatedTextView.text = getString(R.string.service_deactivated)
-                    NotificationsManager.cancelServiceActiveNotification(this)
-                    alarmHelper.cancelAlarm()
-                }
+            if (isChecked) {
+                activatedTextView.text = getString(R.string.service_activated)
+                NotificationsManager.showServiceActiveNotification(this)
+                schedule()
+            } else {
+                activatedTextView.text = getString(R.string.service_deactivated)
+                NotificationsManager.cancelServiceActiveNotification(this)
+                alarmHelper.cancelAlarm()
             }
         }
     }
 
-    private fun setUpSeekBars() {
+    private fun createSeekBars() {
         breakDurationSeekBar.setOnSeekBarChangeListener(this)
         breakEverySeekBar.setOnSeekBarChangeListener(this)
     }
@@ -120,7 +129,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
      * Fetches types of breaks settings from Prefs and then sets up layout.
      * Checkboxes are part of UI responsible for enabling/disabling breaks' settings.
      */
-    private fun setUpCheckBoxes() {
+    private fun createCheckBoxes() {
         notificCheckBox.setOnCheckedChangeListener { _, isChecked ->
             sp.edit().putBoolean(PREF_NOTIFICATIONS, isChecked).apply()
         }
@@ -145,14 +154,12 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     @SuppressLint("StringFormatMatches")
-    private fun setUpStatsScreen() {
-        skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
-        unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
-        lastBreakStatTextView.text = statsHelper.getTimeDifferenceString()
-
+    private fun createStatsScreen() {
         val unskippedInARow = statsHelper.unskippedInARow
         val textString: String
-        val colorResId: Int
+        var colorResId: Int = R.color.unskipped_low
+
+        updateStatsTextViews()
 
         when {
             unskippedInARow > resources.getInteger(R.integer.unskipped_high) -> {
@@ -165,11 +172,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             }
             unskippedInARow == 0 -> {
                 textString = ""
-                colorResId = R.color.unskipped_low
             }
             else -> {
                 textString = getString(R.string.stats_only)
-                colorResId = R.color.unskipped_low
             }
         }
 
@@ -178,21 +183,35 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             else -> "."
         }
 
-        unskippedSeriesTextView.text =
-                getString(R.string.stats_unskipped_breaks_in_a_row, textString, unskippedInARow, mark)
-        unskippedSeriesTextView.setTextColor(resources.getColor(colorResId))
+        unskippedSeriesTextView.apply {
+            setTextColor(resources.getColor(colorResId))
+            text = getString(
+                    R.string.stats_unskipped_breaks_in_a_row,
+                    textString,
+                    unskippedInARow,
+                    mark
+                )
+        }
+    }
+
+    private fun updateStatsTextViews() {
+        skippedBreaksTextView.text = statsHelper.skippedBreaks.toString()
+        unskippedBreaksTextView.text = statsHelper.unskippedBreaks.toString()
+        lastBreakStatTextView.text = statsHelper.getTimeDifferenceString()
     }
 
     private fun requestWriteSettingsPermission() {
-        layout.showSnackbar(R.string.write_settings_required,
-                Snackbar.LENGTH_INDEFINITE, R.string.ok) {
+        layout.showSnackbar(
+            R.string.write_settings_required,
+            Snackbar.LENGTH_INDEFINITE, R.string.ok) {
             createWritePermissionsIntent()
         }
     }
 
     private fun requestDrawOverlayPermission() {
-        layout.showSnackbar(R.string.draw_overlay_required,
-                Snackbar.LENGTH_INDEFINITE, R.string.ok) {
+        layout.showSnackbar(
+            R.string.draw_overlay_required,
+            Snackbar.LENGTH_INDEFINITE, R.string.ok) {
             createDrawOverlayPermissionsIntent()
         }
     }
@@ -203,11 +222,9 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
 
     private fun reschedule() {
         if (alarmHelper.checkIfThereArePendingTasks()) {
-
             Log.d(TAG, "Rescheduling...")
             alarmHelper.cancelAlarm()
             schedule()
-
         } else {
             if (serviceToggleButton.isChecked) {
                 Log.d(TAG, "Rescheduling...")
@@ -222,36 +239,45 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
      * Fetches user's setup and enables/disables UI elements
      * related to the setup on app start.
      */
-    private fun setUserSettings() {
-        // service activated/deactivated CardView
-        if (alarmHelper.checkIfThereArePendingTasks()) {
-            serviceToggleButton.isChecked = true
+    private fun readUserSettings() {
+        readServiceActivatedDeactivatedSettings()
+
+        readBreakLengthDurationSeekbarsSettings()
+
+        readNotificationsSectionSettings()
+    }
+
+    // service activated/deactivated CardView
+    private fun readServiceActivatedDeactivatedSettings() {
+        val thereArePendingTasks = alarmHelper.checkIfThereArePendingTasks()
+        serviceToggleButton.isChecked = thereArePendingTasks
+
+        if (thereArePendingTasks) {
             activatedTextView.text = getString(R.string.service_activated)
             NotificationsManager.showServiceActiveNotification(this)
         } else {
-            serviceToggleButton.isChecked = false
             activatedTextView.text = getString(R.string.service_deactivated)
             NotificationsManager.cancelServiceActiveNotification(this)
         }
+    }
 
-        // Break length/duration SeekBars
+    private fun readBreakLengthDurationSeekbarsSettings() {
         breakEverySeekBar.progress = sp.getInt(PREF_BREAK_EVERY_PROGRESS, 0)
         breakDurationSeekBar.progress = sp.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
 
         // Break length/duration textViews connected with their SeekBars
-        breakDurationValTextView.text =
-                breakDurationSeekBar.getProgressLabel(this)
-        breakEveryValTextView.text =
-                breakEverySeekBar.getProgressFrequencyLabel(this)
+        breakDurationValTextView.text = breakDurationSeekBar.getProgressLabel(this)
+        breakEveryValTextView.text = breakEverySeekBar.getProgressFrequencyLabel(this)
+    }
 
-        // Notifications section
+    private fun readNotificationsSectionSettings() {
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
         notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, false)
         notificRsiWindowCheckBox.isChecked = sp.getBoolean(PREF_RSI_BREAK_WINDOW, false)
     }
 
     companion object {
-        const val TAG = "MainActivity"
+        private const val TAG = "MainActivity"
         const val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
         const val MY_PERMISSIONS_REQUEST_DRAW_OVERLAY = 1
     }

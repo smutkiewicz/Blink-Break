@@ -12,7 +12,15 @@ import android.provider.Settings
 import android.support.v4.content.WakefulBroadcastReceiver
 import android.util.Log
 import com.smutkiewicz.blinkbreak.extensions.getProgress
-import com.smutkiewicz.blinkbreak.util.*
+import com.smutkiewicz.blinkbreak.util.NotificationsManager
+import com.smutkiewicz.blinkbreak.util.PREF_BREAK_DURATION_PROGRESS
+import com.smutkiewicz.blinkbreak.util.PREF_LOWER_BRIGHTNESS
+import com.smutkiewicz.blinkbreak.util.PREF_NOTIFICATIONS
+import com.smutkiewicz.blinkbreak.util.PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED
+import com.smutkiewicz.blinkbreak.util.PREF_RSI_BREAK_WINDOW
+import com.smutkiewicz.blinkbreak.util.PREF_USER_BRIGHTNESS
+import com.smutkiewicz.blinkbreak.util.RsiWindowView
+import com.smutkiewicz.blinkbreak.util.StatsHelper
 import java.util.*
 
 class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
@@ -28,7 +36,9 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         statsHelper = StatsHelper(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(FOREGROUND_ID, NotificationsManager.getServiceActiveNotification(this))
+            startForeground(FOREGROUND_ID,
+                NotificationsManager.getServiceActiveNotification(this)
+            )
         }
 
         return super.onStartCommand(intent, flags, startId)
@@ -39,10 +49,9 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
     }
 
     override fun onHandleIntent(intent: Intent?) {
+        // WakefulBroadcastReceiver ensures the device does not go back to sleep
+        // during the startup of the service
         WakefulBroadcastReceiver.completeWakefulIntent(intent)
-
-        Log.i("BlinkBreakAlarmService", "Service running")
-        Log.i(TAG, "on start task")
 
         // save current brightness to switch it in the future
         saveUserScreenBrightness()
@@ -61,6 +70,7 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         when { lowerBrightnessActivated -> setScreenBrightness(0) }
         when { drawRsiWindow -> drawRsiWindow() }
 
+        // timer for post-break logic
         Timer().schedule(object : TimerTask() {
             override fun run() {
 
@@ -69,10 +79,13 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
                     setScreenBrightness(userBrightness)
                 }
 
-                when { notifications -> cancelSingleTaskActiveNotification() }
-                when {
-                    drawRsiWindow -> removeRsiWindow()
-                    else -> updateStats()
+                if (notifications)
+                    cancelSingleTaskActiveNotification()
+
+                if (drawRsiWindow) {
+                    removeRsiWindow()
+                } else {
+                    updateStats()
                 }
             }
         }, duration)
@@ -109,18 +122,14 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         val isScreenOn = powerManager.isScreenOn
 
         // logic for preventing unnecessary drawing when device has locked or has screen off
-        when {
-            !myKM.inKeyguardRestrictedInputMode() -> {// device is not locked
-                when {
-                    isScreenOn -> {
-                        rsiWindowView = RsiWindowView(this, duration)
-                    } else -> {
-                        Log.d(TAG, "Device screen is off")
-                    }
-                }
-            } else -> {
-                Log.d(TAG, "Device screen is locked")
+        if (!myKM.inKeyguardRestrictedInputMode()) {// device is not locked
+            if (isScreenOn) {
+                rsiWindowView = RsiWindowView(this, duration)
+            } else {
+                Log.d(TAG, "Device screen is off")
             }
+        } else {
+            Log.d(TAG, "Device screen is locked")
         }
     }
 
@@ -137,22 +146,14 @@ class BlinkBreakAlarmService : IntentService("BlinkBreakAlarmService") {
         val lockedDeviceNotificationsEnabled =
                 sp!!.getBoolean(PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED, false)
 
-        when {
-            lockedDeviceNotificationsEnabled -> NotificationsManager.showSingleTaskActiveNotification(this)
-            else -> when {
-                !myKM.inKeyguardRestrictedInputMode() -> {
-                    when {
-                    // Device is not locked
-                        isScreenOn -> {
-                            NotificationsManager.showSingleTaskActiveNotification(this)
-                        }
-                        else -> { // Device screen is off
-                        }
-                    }
-                }
-                else -> { // do nothing
-                }
+        if (lockedDeviceNotificationsEnabled) {
+            NotificationsManager.showSingleTaskActiveNotification(this)
+        } else if (!myKM.inKeyguardRestrictedInputMode()) {
+            if (isScreenOn) {
+                // Device is not locked and screen is on.
+                NotificationsManager.showSingleTaskActiveNotification(this)
             }
+            // Device is not locked and screen is off
         }
     }
 

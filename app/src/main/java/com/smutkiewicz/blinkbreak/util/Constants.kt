@@ -13,5 +13,3 @@ const val PREF_RSI_BREAK_WINDOW = "rsi_break_window"
 const val PREF_NOTIFICATIONS_WHEN_DEVICE_LOCKED = "notify_when_device_is_locked"
 const val PREF_UNSKIPPED_IN_A_ROW = "unskipped_in_a_row"
 const val PREF_POSTPONE_DURATION = "postpone_duration"
-
-//const val BREAK_DURATION_KEY = "${BuildConfig.APPLICATION_ID}.BREAK_DURATION_KEY"

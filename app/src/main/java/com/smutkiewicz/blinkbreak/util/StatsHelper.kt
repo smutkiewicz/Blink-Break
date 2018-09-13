@@ -2,11 +2,16 @@ package com.smutkiewicz.blinkbreak.util
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import org.joda.time.*
+import org.joda.time.DateTime
+import org.joda.time.Days
+import org.joda.time.Hours
+import org.joda.time.Minutes
+import org.joda.time.Seconds
 import java.text.SimpleDateFormat
 import java.util.*
 
 class StatsHelper(internal var context: Context) {
+
     private var pref: SharedPreferences
     private var editor: SharedPreferences.Editor
     private var spName: String
@@ -20,55 +25,45 @@ class StatsHelper(internal var context: Context) {
     var unskippedBreaks: Int
         get() = pref.getInt(STAT_UNSKIPPED_BREAKS, 0)
         set(value) {
-            editor.putInt(STAT_UNSKIPPED_BREAKS, value)
-            editor.commit()
+            editor.putInt(STAT_UNSKIPPED_BREAKS, value).commit()
         }
 
     var unskippedInARow: Int
         get() = pref.getInt(STAT_UNSKIPPED_IN_A_ROW, 0)
         set(value) {
-            editor.putInt(STAT_UNSKIPPED_IN_A_ROW, value)
-            editor.commit()
+            editor.putInt(STAT_UNSKIPPED_IN_A_ROW, value).commit()
         }
 
     var skippedBreaks: Int
         get() = pref.getInt(STAT_SKIPPED_BREAKS, 0)
         set(value) {
-            editor.putInt(STAT_SKIPPED_BREAKS, value)
-            editor.commit()
+            editor.putInt(STAT_SKIPPED_BREAKS, value).commit()
         }
 
     var lastBreak: String
         get() = pref.getString(STAT_LAST_BREAK, "Never")
         set(value) {
-            editor.putString(STAT_LAST_BREAK, value)
-            editor.commit()
+            editor.putString(STAT_LAST_BREAK, value).commit()
         }
 
     fun increaseValue(prefName: String) {
         when(prefName) {
-            STAT_UNSKIPPED_BREAKS -> {
-                val newValue = unskippedBreaks + 1
-                unskippedBreaks = newValue
-            }
-            STAT_SKIPPED_BREAKS -> {
-                val newValue = skippedBreaks + 1
-                skippedBreaks = newValue
-            }
-            STAT_UNSKIPPED_IN_A_ROW -> {
-                val newValue = unskippedInARow + 1
-                unskippedInARow = newValue
-            }
-            else -> { //do nothing
+            STAT_UNSKIPPED_BREAKS -> unskippedBreaks += 1
+            STAT_SKIPPED_BREAKS -> skippedBreaks += 1
+            STAT_UNSKIPPED_IN_A_ROW -> unskippedInARow += 1
+            else -> {
+                //do nothing
             }
         }
     }
 
     fun resetValues() {
-        editor.putString(STAT_LAST_BREAK, "Never").apply()
-        editor.putInt(STAT_UNSKIPPED_BREAKS, 0).apply()
-        editor.putInt(STAT_SKIPPED_BREAKS, 0).apply()
-        editor.putInt(STAT_UNSKIPPED_IN_A_ROW, 0).apply()
+        editor.apply {
+            putString(STAT_LAST_BREAK, "Never").apply()
+            putInt(STAT_UNSKIPPED_BREAKS, 0).apply()
+            putInt(STAT_SKIPPED_BREAKS, 0).apply()
+            putInt(STAT_UNSKIPPED_IN_A_ROW, 0).apply()
+        }
     }
 
     fun getTimeDifferenceString(): String {
@@ -103,16 +98,14 @@ class StatsHelper(internal var context: Context) {
     }
 
     companion object {
-        val STAT_UNSKIPPED_BREAKS = "stat_unskipped_breaks"
-        val STAT_SKIPPED_BREAKS = "stat_skipped_breaks"
-        val STAT_LAST_BREAK = "stat_last_break"
-        val STAT_UNSKIPPED_IN_A_ROW = "stat_unskipped_in_a_row"
-        val STAT_NEVER = "Never"
-        val DATE_FORMAT = "MM/dd/yyyy HH:mm:ss"
+        const val STAT_UNSKIPPED_BREAKS = "stat_unskipped_breaks"
+        const val STAT_SKIPPED_BREAKS = "stat_skipped_breaks"
+        const val STAT_LAST_BREAK = "stat_last_break"
+        const val STAT_UNSKIPPED_IN_A_ROW = "stat_unskipped_in_a_row"
+        const val STAT_NEVER = "Never"
+        const val DATE_FORMAT = "MM/dd/yyyy HH:mm:ss"
 
-        fun getTimeStamp() =
-                SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().time)!!
-
+        fun getTimeStamp() = SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().time)!!
     }
 
 }

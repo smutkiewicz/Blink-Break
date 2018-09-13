@@ -8,7 +8,6 @@ import android.provider.Settings
 import android.widget.Toast
 import com.smutkiewicz.blinkbreak.MainActivity
 
-
 /**
  * Helper extension function for showing a [Toast]
  */
@@ -19,12 +18,12 @@ fun Activity.showToast(text: String) {
 /**
  * Permission for write/draw overlays is only needed for API >= 23
  */
-fun Activity.checkForWritePermissions(): Boolean =
+fun Activity.checkForWritePermissions() =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Settings.System.canWrite(applicationContext)
         } else true
 
-fun Activity.checkForDrawOverlaysPermissions(): Boolean =
+fun Activity.checkForDrawOverlaysPermissions() =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Settings.canDrawOverlays(applicationContext)
         } else true

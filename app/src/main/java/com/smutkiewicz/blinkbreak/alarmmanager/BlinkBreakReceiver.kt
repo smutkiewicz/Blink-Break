@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
-
 class BlinkBreakReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, p1: Intent?) {

@@ -37,20 +37,18 @@ class WelcomeActivity : AppCompatActivity() {
     private var btnNext: Button? = null
 
     //  viewpager change listener
-    internal var viewPagerPageChangeListener: ViewPager.OnPageChangeListener = object : ViewPager.OnPageChangeListener {
+    private var viewPagerPageChangeListener: ViewPager.OnPageChangeListener = object : ViewPager.OnPageChangeListener {
 
         override fun onPageSelected(position: Int) {
             addBottomDots(position)
 
             // changing the next button text 'NEXT' / 'GOT IT'
             if (position == layouts!!.size - 1) {
-                // last page. make button text to GOT IT
-                btnNext!!.setText(getString(R.string.start))
-                btnSkip!!.setVisibility(View.GONE)
+                btnNext!!.text = getString(R.string.start)
+                btnSkip!!.visibility = View.GONE
             } else {
-                // still pages are left
-                btnNext!!.setText(getString(R.string.next))
-                btnSkip!!.setVisibility(View.VISIBLE)
+                btnNext!!.text = getString(R.string.next)
+                btnSkip!!.visibility = View.VISIBLE
             }
         }
 
@@ -85,8 +83,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         // layouts of all welcome sliders
         // add few more layouts if you want
-        layouts = intArrayOf(R.layout.welcome_slide1, R.layout.welcome_slide2,
-                R.layout.welcome_slide3, R.layout.welcome_slide4)
+        layouts = getLayoutsArray()
 
         // adding bottom dots
         addBottomDots(0)
@@ -98,25 +95,19 @@ class WelcomeActivity : AppCompatActivity() {
         viewPager!!.adapter = myViewPagerAdapter
         viewPager!!.addOnPageChangeListener(viewPagerPageChangeListener)
 
-        btnSkip!!.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
+        btnSkip!!.setOnClickListener { launchHomeScreen() }
+
+        btnNext!!.setOnClickListener {
+            // checking for last page
+            // if last page home screen will be launched
+            val current = getItem(+1)
+            if (current < layouts!!.size) {
+                // move to next screen
+                viewPager!!.currentItem = current
+            } else {
                 launchHomeScreen()
             }
-        })
-
-        btnNext!!.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                // checking for last page
-                // if last page home screen will be launched
-                val current = getItem(+1)
-                if (current < layouts!!.size) {
-                    // move to next screen
-                    viewPager!!.currentItem = current
-                } else {
-                    launchHomeScreen()
-                }
-            }
-        })
+        }
     }
 
     private fun addBottomDots(currentPage: Int) {
@@ -129,12 +120,12 @@ class WelcomeActivity : AppCompatActivity() {
         for (i in 0 until layouts!!.size) {
             dots[i] = TextView(this)
             dots[i]!!.text = Html.fromHtml("&#8226;")
-            dots[i]!!.setTextSize(35.toFloat())
+            dots[i]!!.textSize = 35.toFloat()
             dots[i]!!.setTextColor(colorsInactive[currentPage])
             dotsLayout!!.addView(dots[i])
         }
 
-        if (dots.size > 0)
+        if (dots.isNotEmpty())
             dots[currentPage]!!.setTextColor(colorsActive[currentPage])
     }
 
@@ -157,6 +148,13 @@ class WelcomeActivity : AppCompatActivity() {
         }
     }
 
+    private fun getLayoutsArray() = intArrayOf(
+        R.layout.welcome_slide1,
+        R.layout.welcome_slide2,
+        R.layout.welcome_slide3,
+        R.layout.welcome_slide4
+    )
+
     /**
      * View pager adapter
      */
@@ -174,7 +172,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         override fun getCount() = layouts!!.size
 
-        override fun isViewFromObject(view: View, obj: Any) = view === obj
+        override fun isViewFromObject(view: View, obj: Any) = (view === obj)
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
             val view = `object` as View
