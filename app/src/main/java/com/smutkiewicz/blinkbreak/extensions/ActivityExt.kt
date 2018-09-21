@@ -6,7 +6,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
-import com.smutkiewicz.blinkbreak.MainActivity
+import com.smutkiewicz.blinkbreak.util.MY_PERMISSIONS_REQUEST_DRAW_OVERLAY
+import com.smutkiewicz.blinkbreak.util.MY_PERMISSIONS_REQUEST_WRITE_SETTINGS
 
 /**
  * Helper extension function for showing a [Toast]
@@ -31,7 +32,7 @@ fun Activity.createWritePermissionsIntent()
     {
         val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
         intent.data = Uri.parse("package:$packageName")
-        startActivityForResult(intent, MainActivity.MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
+        startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_SETTINGS)
     }
 }
 
@@ -41,7 +42,7 @@ fun Activity.createDrawOverlayPermissionsIntent()
     {
         val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
         intent.data = Uri.parse("package:$packageName")
-        startActivityForResult(intent, MainActivity.MY_PERMISSIONS_REQUEST_DRAW_OVERLAY)
+        startActivityForResult(intent, MY_PERMISSIONS_REQUEST_DRAW_OVERLAY)
     }
 }
 

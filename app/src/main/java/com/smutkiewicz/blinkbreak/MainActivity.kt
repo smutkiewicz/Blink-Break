@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
     {
         val unskippedInARow = statsHelper.unskippedInARow
         var colorResId = R.color.unskipped_low
-        var textString = ""
+        val textString: String
 
         updateStatsTextViews()
 
@@ -246,11 +246,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
             createDrawOverlayPermissionsIntent()
         }
 
-
-    private fun schedule()
-    {
-        alarmHelper.scheduleAlarm()
-    }
+    private fun schedule() = alarmHelper.scheduleAlarm()
 
     private fun reschedule()
     {
@@ -312,11 +308,5 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
         notificCheckBox.isChecked = sp.getBoolean(PREF_NOTIFICATIONS, true)
         notificBrightnessCheckBox.isChecked = sp.getBoolean(PREF_LOWER_BRIGHTNESS, false)
         notificRsiWindowCheckBox.isChecked = sp.getBoolean(PREF_RSI_BREAK_WINDOW, false)
-    }
-
-    companion object
-    {
-        const val MY_PERMISSIONS_REQUEST_WRITE_SETTINGS = 0
-        const val MY_PERMISSIONS_REQUEST_DRAW_OVERLAY = 1
     }
 }
