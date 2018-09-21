@@ -1,4 +1,5 @@
 package com.smutkiewicz.blinkbreak.util
+
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
@@ -10,13 +11,16 @@ import org.joda.time.Seconds
 import java.text.SimpleDateFormat
 import java.util.*
 
-class StatsHelper(internal var context: Context) {
+private const val DATE_FORMAT = "MM/dd/yyyy HH:mm:ss"
 
+class StatsHelper(var context: Context)
+{
     private var pref: SharedPreferences
     private var editor: SharedPreferences.Editor
     private var spName: String
 
-    init {
+    init
+    {
         spName = context.packageName + "_preferences"
         pref = context.getSharedPreferences(spName, MODE_PRIVATE)
         editor = pref.edit()
@@ -24,40 +28,46 @@ class StatsHelper(internal var context: Context) {
 
     var unskippedBreaks: Int
         get() = pref.getInt(STAT_UNSKIPPED_BREAKS, 0)
-        set(value) {
+        set(value)
+        {
             editor.putInt(STAT_UNSKIPPED_BREAKS, value).commit()
         }
 
     var unskippedInARow: Int
         get() = pref.getInt(STAT_UNSKIPPED_IN_A_ROW, 0)
-        set(value) {
+        set(value)
+        {
             editor.putInt(STAT_UNSKIPPED_IN_A_ROW, value).commit()
         }
 
     var skippedBreaks: Int
         get() = pref.getInt(STAT_SKIPPED_BREAKS, 0)
-        set(value) {
+        set(value)
+        {
             editor.putInt(STAT_SKIPPED_BREAKS, value).commit()
         }
 
     var lastBreak: String
         get() = pref.getString(STAT_LAST_BREAK, "Never")
-        set(value) {
+        set(value)
+        {
             editor.putString(STAT_LAST_BREAK, value).commit()
         }
 
-    fun increaseValue(prefName: String) {
-        when(prefName) {
+    fun increaseValue(prefName: String)
+    {
+        when(prefName)
+        {
             STAT_UNSKIPPED_BREAKS -> unskippedBreaks += 1
             STAT_SKIPPED_BREAKS -> skippedBreaks += 1
             STAT_UNSKIPPED_IN_A_ROW -> unskippedInARow += 1
-            else -> {
-                //do nothing
-            }
+
+            else -> { }
         }
     }
 
-    fun resetValues() {
+    fun resetValues()
+    {
         editor.apply {
             putString(STAT_LAST_BREAK, "Never").apply()
             putInt(STAT_UNSKIPPED_BREAKS, 0).apply()
@@ -66,16 +76,21 @@ class StatsHelper(internal var context: Context) {
         }
     }
 
-    fun getTimeDifferenceString(): String {
-        return if (lastBreak != STAT_NEVER) {
+    fun getTimeDifferenceString(): String
+    {
+        return if (lastBreak != STAT_NEVER)
+        {
             val currentDate = getTimeStamp()
             calculateTimeDifferenceString(lastBreak, currentDate)
-        } else {
+        }
+        else
+        {
             STAT_NEVER
         }
     }
 
-    fun calculateTimeDifferenceString(date1: String, date2: String): String {
+    fun calculateTimeDifferenceString(date1: String, date2: String): String
+    {
         val format = SimpleDateFormat(DATE_FORMAT)
 
         val d1 = format.parse(date1)
@@ -89,23 +104,24 @@ class StatsHelper(internal var context: Context) {
         val hours = Hours.hoursBetween(dt1, dt2).hours % 24
         val days = Days.daysBetween(dt1, dt2).days
 
-        return when {
+        return when
+        {
             days > 0 -> days.toString() + " day(s) ago."
             hours > 0 -> hours.toString() + " hour(s) ago."
             minutes > 0 -> minutes.toString() + " min(s) ago."
+
             else -> seconds.toString() + " second(s) ago."
         }
     }
 
-    companion object {
+    companion object
+    {
         const val STAT_UNSKIPPED_BREAKS = "stat_unskipped_breaks"
         const val STAT_SKIPPED_BREAKS = "stat_skipped_breaks"
         const val STAT_LAST_BREAK = "stat_last_break"
         const val STAT_UNSKIPPED_IN_A_ROW = "stat_unskipped_in_a_row"
         const val STAT_NEVER = "Never"
-        const val DATE_FORMAT = "MM/dd/yyyy HH:mm:ss"
 
         fun getTimeStamp() = SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().time)!!
     }
-
 }

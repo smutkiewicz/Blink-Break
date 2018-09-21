@@ -5,20 +5,26 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
-class BlinkBreakReceiver : BroadcastReceiver() {
+private const val TAG = "AlarmReceiver"
 
-    override fun onReceive(context: Context?, p1: Intent?) {
+class BlinkBreakReceiver : BroadcastReceiver()
+{
+    override fun onReceive(context: Context?, p1: Intent?)
+    {
         val intent = Intent(context, BlinkBreakAlarmService::class.java)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             context?.startForegroundService(intent)
-        } else {
+        }
+        else
+        {
             context?.startService(intent)
         }
     }
 
-    companion object {
-        private val TAG = "AlarmReceiver"
+    companion object
+    {
         const val REQUEST_CODE = 1
     }
 }

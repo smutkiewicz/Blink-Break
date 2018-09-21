@@ -13,20 +13,17 @@ import com.smutkiewicz.blinkbreak.MainActivity
 import com.smutkiewicz.blinkbreak.R
 import com.smutkiewicz.blinkbreak.extensions.setNotificationChannel
 
+private const val TAG = "NotificationsManager"
+private const val SERVICE_CHANNEL_ID = "blink_break_channel_id"
+private const val SERVICE_SINGLE_TASK_CHANNEL_ID = "blink_break_single_task_channel_id"
 
-object NotificationsManager {
-
-    private const val TAG = "NotificationsManager"
-    private const val SERVICE_CHANNEL_ID = "blink_break_channel_id"
-    private const val SERVICE_SINGLE_TASK_CHANNEL_ID = "blink_break_single_task_channel_id"
-
-    fun showServiceActiveNotification(context: Context) {
+object NotificationsManager
+{
+    fun showServiceActiveNotification(context: Context)
+    {
         val nm = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         val title = context.getString(R.string.service_is_active)
-
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(context, 0, intent, 0)
+        val contentIntent = getContentIntent(context)
 
         val builder = NotificationCompat.Builder(context, SERVICE_CHANNEL_ID)
             .apply {
@@ -39,7 +36,8 @@ object NotificationsManager {
                 color = Color.MAGENTA
             }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             nm.setNotificationChannel(
                 SERVICE_CHANNEL_ID,
                 context.getString(R.string.service_notification_channel_name),
@@ -52,14 +50,11 @@ object NotificationsManager {
         nm.notify(R.string.service_is_active, notification)
     }
 
-    fun getServiceActiveNotification(context: Context): Notification? {
+    fun getServiceActiveNotification(context: Context): Notification?
+    {
         val nm = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         val title = context.getString(R.string.service_is_active)
-
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(context, 0,
-                intent, 0)
+        val contentIntent = getContentIntent(context)
 
         val builder = NotificationCompat.Builder(context, SERVICE_CHANNEL_ID)
             .apply {
@@ -72,27 +67,26 @@ object NotificationsManager {
                 color = Color.MAGENTA
             }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             nm.setNotificationChannel(
                 SERVICE_CHANNEL_ID,
                 context.getString(R.string.service_notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             )
+
             builder.setChannelId(SERVICE_CHANNEL_ID)
         }
 
         return builder.build()
     }
 
-    fun showSingleTaskActiveNotification(context: Context) {
+    fun showSingleTaskActiveNotification(context: Context)
+    {
         val nm = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         val title = context.getString(R.string.have_a_break_message)
         val contentText = context.getString(R.string.have_a_break_ticker)
-
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val contentIntent = PendingIntent.getActivity(context, 0,
-                intent, 0)
+        val contentIntent = getContentIntent(context)
 
         val builder = NotificationCompat.Builder(context, SERVICE_SINGLE_TASK_CHANNEL_ID)
             .apply {
@@ -105,12 +99,14 @@ object NotificationsManager {
                 color = Color.MAGENTA
             }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             nm.setNotificationChannel(
                 SERVICE_SINGLE_TASK_CHANNEL_ID,
                 context.getString(R.string.service_task_notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             )
+
             builder.setChannelId(SERVICE_SINGLE_TASK_CHANNEL_ID)
         }
 
@@ -118,15 +114,20 @@ object NotificationsManager {
         nm.notify(R.string.have_a_break_message, notification)
     }
 
-    fun cancelServiceActiveNotification(context: Context) {
-        cancelNotification(context, R.string.service_is_active)
+    fun cancelServiceActiveNotification(context: Context) = cancelNotification(context, R.string.service_is_active)
+
+    fun cancelSingleTaskActiveNotification(context: Context) = cancelNotification(context, R.string.have_a_break_message)
+
+    private fun getContentIntent(context: Context): PendingIntent?
+    {
+        val intent = Intent(context, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        return PendingIntent.getActivity(context, 0, intent, 0)
     }
 
-    fun cancelSingleTaskActiveNotification(context: Context) {
-        cancelNotification(context, R.string.have_a_break_message)
-    }
-
-    private fun cancelNotification(context: Context, resId: Int) {
+    private fun cancelNotification(context: Context, resId: Int)
+    {
         val nm = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancel(resId)
     }

@@ -15,37 +15,43 @@ import com.smutkiewicz.blinkbreak.util.PREF_BREAK_DURATION_PROGRESS
 import com.smutkiewicz.blinkbreak.util.PREF_BREAK_EVERY_PROGRESS
 import com.smutkiewicz.blinkbreak.util.PREF_POSTPONE_DURATION
 
-class AlarmHelper(private val context: Context) {
+private const val DEFAULT_POSTPONE_VAL = "1200000"
+private const val TAG = "AlarmHelper"
 
-    private var sp: SharedPreferences? = null
+class AlarmHelper(private val context: Context)
+{
+    private var sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    fun scheduleAlarm() {
+    fun scheduleAlarm()
+    {
         // Constructs an intent that will execute the AlarmReceiver
         val intent = Intent(context, BlinkBreakReceiver::class.java)
         val task = getAlarmTaskSettings()
 
         // Creates a PendingIntent to be triggered when the alarm goes off
-        val pIntent = getBroadcast(
+        val pendingIntent = getBroadcast(
             context,
             BlinkBreakReceiver.REQUEST_CODE,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val firstMillis = SystemClock.elapsedRealtime() // alarm is set right away
+        val firstMillis = SystemClock.elapsedRealtime()
 
         // scheduling to trigger for the first time after breakEvery amount of time
         val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarm.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME,
-            firstMillis + task!!.breakEvery,
-            task.breakEvery, pIntent
+            firstMillis + task.breakEvery,
+            task.breakEvery,
+            pendingIntent
         )
 
         Log.d(TAG, "Alarm scheduled.")
     }
 
-    fun schedulePostponedAlarm() {
+    fun schedulePostponedAlarm()
+    {
         // We have to cancel current alarm before making the postponed one
         cancelAlarm()
 
@@ -63,7 +69,7 @@ class AlarmHelper(private val context: Context) {
         val firstMillis = SystemClock.elapsedRealtime()
         val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val postponeDuration = Integer.valueOf(
-            sp!!.getString(
+            sp.getString(
                 PREF_POSTPONE_DURATION,
                 DEFAULT_POSTPONE_VAL
             )
@@ -73,13 +79,14 @@ class AlarmHelper(private val context: Context) {
         alarm.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME,
             firstMillis + postponeDuration,
-            task!!.breakEvery, pIntent
+            task.breakEvery, pIntent
         )
 
         Log.d(TAG, "Alarm postponed.")
     }
 
-    fun cancelAlarm() {
+    fun cancelAlarm()
+    {
         val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, BlinkBreakReceiver::class.java)
         val pIntent = getBroadcast(
@@ -89,34 +96,33 @@ class AlarmHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // alarm is cancelled only if its pendingIntent is the same as passed here
         alarm.cancel(pIntent)
         pIntent.cancel()
 
         Log.d(TAG, "Alarm cancelled.")
     }
 
-    fun checkIfThereArePendingTasks(): Boolean {
-        return PendingIntent.getBroadcast(
+    fun checkIfThereArePendingTasks()
+        = PendingIntent.getBroadcast(
             context,
             BlinkBreakReceiver.REQUEST_CODE,
             Intent(context, BlinkBreakReceiver::class.java),
             PendingIntent.FLAG_NO_CREATE
         ) != null
-    }
 
-    private fun getAlarmTaskSettings(): Task? {
+    private fun getAlarmTaskSettings(): Task
+    {
         sp = PreferenceManager.getDefaultSharedPreferences(context)
 
         // break frequency, got from sp in steps, mapped to millis
-        val breakEveryProgress = sp!!.getInt(PREF_BREAK_EVERY_PROGRESS, 0)
+        val breakEveryProgress = sp.getInt(PREF_BREAK_EVERY_PROGRESS, 0)
         val breakEvery = getProgressValue(
             R.array.break_frequency_val_array,
             breakEveryProgress
         )
 
         // duration of notification and RSI window on top of the screen
-        val breakDurationProgress = sp!!.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
+        val breakDurationProgress = sp.getInt(PREF_BREAK_DURATION_PROGRESS, 0)
         val breakDuration = getProgressValue(
             R.array.break_duration_val_array,
             breakDurationProgress
@@ -129,16 +135,12 @@ class AlarmHelper(private val context: Context) {
      * Values of time are stored in sp in steps of SeekBar,
      * so we need to map them to their real values.
      */
-    private fun getProgressValue(resId: Int, progress: Int): Long {
+    private fun getProgressValue(resId: Int, progress: Int): Long
+    {
         val intArray = context
             .resources
             .getIntArray(resId)
 
         return intArray[progress].toLong()
-    }
-
-    companion object {
-        const val DEFAULT_POSTPONE_VAL = "1200000"
-        const val TAG = "AlarmHelper"
     }
 }

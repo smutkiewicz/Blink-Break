@@ -10,14 +10,19 @@ import com.smutkiewicz.blinkbreak.util.NotificationsManager
  * WakefulBroadcastReceiver ensures the device does not go back to sleep
  * during the startup of the service.
  */
-class BootBroadcastReceiver : WakefulBroadcastReceiver() {
-    override fun onReceive(context: Context, i: Intent) {
+class BootBroadcastReceiver : WakefulBroadcastReceiver()
+{
+    override fun onReceive(context: Context, i: Intent)
+    {
         val intent = Intent(context, BlinkBreakAlarmService::class.java)
         NotificationsManager.showServiceActiveNotification(context)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             context.startForegroundService(intent)
-        } else {
+        }
+        else
+        {
             context.startService(intent)
         }
     }
